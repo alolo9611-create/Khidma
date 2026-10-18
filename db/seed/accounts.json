@@ -1,0 +1,14 @@
+{
+  "departments": [
+    { "id": 1, "name": "Licensing", "maxActivePerReviewer": 10 },
+    { "id": 2, "name": "Events", "maxActivePerReviewer": 10 }
+  ],
+  "users": [
+    { "id": 1, "nationalId": "0000000001", "name": "Faisal Demo", "email": "faisal@khidma.test", "role": "APPLICANT", "departmentId": null },
+    { "id": 2, "nationalId": "0000000002", "name": "Huda Demo", "email": "huda@khidma.test", "role": "APPLICANT", "departmentId": null },
+    { "id": 3, "nationalId": "0000000003", "name": "Noura Demo", "email": "noura@khidma.test", "role": "REVIEWER", "departmentId": 1 },
+    { "id": 4, "nationalId": "0000000004", "name": "Omar Demo", "email": "omar@khidma.test", "role": "REVIEWER", "departmentId": 1 },
+    { "id": 5, "nationalId": "0000000005", "name": "Layla Demo", "email": "layla@khidma.test", "role": "REVIEWER", "departmentId": 2 },
+    { "id": 6, "nationalId": "0000000006", "name": "Khalid Demo", "email": "khalid@khidma.test", "role": "SUPERVISOR", "departmentId": 1 }
+  ]
+}
