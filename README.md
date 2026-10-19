@@ -86,6 +86,11 @@ Serve over HTTPS: the session cookie is `Secure`.
 - **Data is disposable.** Free instances have an ephemeral filesystem and sleep after 15 minutes without traffic. On every start (wake-up, restart, redeploy) the database is rebuilt: migrations run and the six demo accounts and three services are seeded again. **Requests, comments and notifications created in the preview are lost** each time. The first visit after sleeping takes about a minute.
 - **Not private at the network level:** the URL is public; the shared login is the only barrier. An IP allow-list needs a paid Render plan.
 - **Limits:** 750 free instance hours per month per workspace; builds stop (no charge) if the free build minutes run out.
+- **Smoke test the live preview** (wakes it, checks the gate and all three roles, creates one approved demo request):
+
+  ```bash
+  PREVIEW_URL=https://<service>.onrender.com PREVIEW_PASSWORD='<gate password>' node scripts/verify-preview.mjs
+  ```
 
 ## Known limitations
 
