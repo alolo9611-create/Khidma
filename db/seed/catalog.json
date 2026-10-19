@@ -1,0 +1,15 @@
+{
+  "services": [
+    { "id": 1, "code": "SHOP-LIC", "name": "Shop licence renewal", "departmentId": 1, "slaDays": 5, "allowMultiple": false, "isActive": true },
+    { "id": 2, "code": "SIGN-PMT", "name": "Signboard permit", "departmentId": 1, "slaDays": 3, "allowMultiple": false, "isActive": true },
+    { "id": 3, "code": "EVENT-PMT", "name": "Public event permit", "departmentId": 2, "slaDays": 7, "allowMultiple": true, "isActive": true }
+  ],
+  "documents": [
+    { "id": 1, "serviceTypeId": 1, "typeCode": "LEASE_CONTRACT", "label": "Lease contract number", "mandatory": true },
+    { "id": 2, "serviceTypeId": 1, "typeCode": "CR_NUMBER", "label": "Commercial registration number", "mandatory": true },
+    { "id": 3, "serviceTypeId": 2, "typeCode": "CR_NUMBER", "label": "Commercial registration number", "mandatory": true },
+    { "id": 4, "serviceTypeId": 2, "typeCode": "SHOP_LICENCE_NO", "label": "Shop licence number", "mandatory": true },
+    { "id": 5, "serviceTypeId": 3, "typeCode": "VENUE_BOOKING", "label": "Venue booking reference", "mandatory": true },
+    { "id": 6, "serviceTypeId": 3, "typeCode": "CIVIL_DEFENCE_APPROVAL", "label": "Civil defence approval number", "mandatory": false }
+  ]
+}

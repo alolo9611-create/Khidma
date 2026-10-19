@@ -1,0 +1,47 @@
+/* App-level glue around khidma-ui.css (the design system stays byte-identical). */
+html, body, #root { height: 100%; margin: 0; }
+body { background: var(--k-bg); }
+#root > .k-app { min-height: 100vh; display: flex; flex-direction: column; }
+.k-main { flex: 1 0 auto; width: 100%; }
+button.k-btn { font: 600 15px/20px var(--f-ui); }
+button.k-btn-sm { font-size: 14px; }
+.k-btn .k-spin { animation: k-spin 0.8s linear infinite; }
+@keyframes k-spin { to { transform: rotate(360deg); } }
+.k-skel { animation: k-pulse 1.4s ease-in-out infinite; }
+@keyframes k-pulse { 50% { opacity: .55; } }
+.k-visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* Top bar: popovers anchored to the actions area */
+.k-top-actions { position: relative; }
+.k-top-actions .k-pop, .k-menu { position: absolute; top: calc(100% + 8px); right: 0; z-index: 30; }
+.k-menu { min-width: 200px; background: var(--k-surface); border: 1px solid var(--k-border); border-radius: var(--r-lg); box-shadow: var(--sh-pop); padding: 6px; display: flex; flex-direction: column; }
+.k-menu button, .k-menu a { all: unset; padding: 10px 12px; border-radius: var(--r-md); cursor: pointer; font-size: 14px; color: var(--k-text); }
+.k-menu button:hover, .k-menu a:hover { background: var(--k-subtle); }
+.k-pop .k-notif { cursor: pointer; }
+.k-pop-list { max-height: 420px; overflow-y: auto; }
+.k-mobile-only { display: none !important; }
+
+/* Dialog overlay */
+.k-overlay { position: fixed; inset: 0; z-index: 50; overflow-y: auto; }
+.k-overlay .k-scrim { min-height: 100%; }
+
+/* Toasts: bottom-left, about 4 s (HANDOFF §4) */
+.k-toasts { position: fixed; left: 24px; bottom: 24px; z-index: 60; display: flex; flex-direction: column; gap: 8px; }
+.k-toast a { color: #7FD3A6; }
+
+/* Mobile (< 640 px, HANDOFF §3) */
+.k-cards { display: none; }
+@media (max-width: 640px) {
+  .k-desktop-only { display: none !important; }
+  .k-mobile-only { display: flex !important; }
+  .k-nav.is-desktop, .k-top-actions .k-dept, .k-foot-links { display: none; }
+  .k-sheet-nav { border-top: 1px solid var(--k-border); padding: 8px; display: flex; flex-direction: column; width: 100%; }
+  .k-sheet-nav a, .k-sheet-nav button { all: unset; padding: 12px; border-radius: 8px; color: var(--k-text); cursor: pointer; }
+  .k-sheet-nav a.is-active { background: var(--k-primary-tint); color: var(--k-primary); font-weight: 600; }
+  .k-table-wrap.has-cards { display: none; }
+  .k-cards { display: flex; flex-direction: column; gap: 12px; }
+  .k-cards > .k-card { padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; text-decoration: none; color: inherit; }
+  .k-sticky-bar { position: sticky; bottom: 0; z-index: 20; background: var(--k-surface); border-top: 1px solid var(--k-border); padding: 12px 16px; display: flex; gap: 8px; margin: 0 -16px -48px; }
+  .k-sticky-bar > * { flex: 1; }
+  .k-toasts { left: 16px; right: 16px; bottom: 16px; }
+}
