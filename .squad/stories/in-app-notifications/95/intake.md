@@ -1,0 +1,473 @@
+# In-app notifications
+
+## Feature
+
+- **Feature name (display):** In-app notifications
+- **Feature slug (folder under `plans/`):** `in-app-notifications`
+- **PRD reference:** F-19 (Epic E-06 Trust & notifications) — `Khidma-PRD-Lite.pdf` v2.0-lite
+
+## Tracker (metadata only)
+
+- **Tracker type:** `azure`
+- **Work item id:** `95`
+- **Work item type:** `User Story`
+- **Status:** `New`
+- **Assignee:** —
+- **Labels:** `E-06; F-19; Khidma`
+- **Source:** ids from the Azure DevOps query export `queries.csv` (2026-10-18); description and acceptance criteria from the import file `Khidma_Azure_Import_AGILE.csv`. squad-kit tracker auto-fetch failed (Azure returned a sign-in page).
+- **Parent (import file hierarchy, live link not verified):** Feature "In-app notifications" → Epic "Trust & notifications".
+
+---
+
+## Title
+
+```
+In-app notifications
+```
+
+---
+
+## Description
+
+```
+As a user, I want in-app notifications for relevant request events so that I know when action is needed or a status changes.
+
+Traceability: BR-14
+Open questions to resolve: Notification recipient for supervisor assignment/reassignment and notification text templates not fully specified.
+```
+
+## Acceptance Criteria
+
+```
+Given a status change, the applicant receives an in-app notification linked to the request; given assignment, the assigned reviewer receives one. The list shows unread count; opening a notification marks it read and opens the request. (BR-14)
+```
+
+> **Source:** verbatim from `Khidma_Azure_Import_AGILE.csv` (the file the Azure work items were imported from), User Story row "In-app notifications" under Feature "In-app notifications" / Epic "Trust & notifications" (tags `Khidma; E-06; F-19`). Not yet re-checked against the live Azure item. The tracker's "Open questions to resolve" line is consolidated in `.squad/plans/00-open-questions.md`; it is **not** answered here.
+
+---
+
+## PRD requirements (quoted from `Khidma-PRD-Lite.pdf`)
+
+- **F-19 (§05 backlog):** F-19 In-app notifications — "Bell with unread count and a list; click marks as read and opens the request. Created in the same transaction — no queue, no push." Rule: BR-14. Size: S.
+- **BR-14 (§04):** "Every status change creates an in-app notification for the applicant; an assignment notifies the reviewer. Each links to the request."
+- **T-01 (§03):** DRAFT → SUBMITTED · Submit · Applicant — "Form valid, mandatory documents declared, no duplicate open request. Sets reference no. and due date." (BR-01 02 03 11)
+- **T-02 (§03):** SUBMITTED → IN_REVIEW · Pick · Reviewer / Assign · Supervisor — "Load limit checked. Sets assigneeId." (BR-05 06)
+- **T-03 (§03):** IN_REVIEW → INFO_REQUESTED · Request info · Assignee — "Message ≥ 20 chars; infoCycles + 1; max 2 cycles." (BR-07)
+- **T-04 (§03):** INFO_REQUESTED → IN_REVIEW · Respond · Applicant — "Applicant may edit form and documents; back to the same assignee." (BR-04)
+- **T-05 (§03):** IN_REVIEW → APPROVED · Approve · Assignee — "Generates certificate number; sets decidedAt." (BR-09)
+- **T-06 (§03):** IN_REVIEW → REJECTED · Reject · Assignee — "Reason code + justification ≥ 30 chars; sets decidedAt." (BR-08)
+- **T-07 (§03):** SUBMITTED | IN_REVIEW | INFO_REQUESTED → WITHDRAWN · Withdraw · Applicant — "Explicit confirmation; frees the reviewer's load slot." (BR-10)
+- **API surface (§06, base `/api/v1`):** `GET /notifications · POST …/read — Notification center — F-19`
+- §06 seed ticket KH-107 (VAGUE): "Applicants should know what's happening with their request."
+- §00: "No email or SMS — in-app notifications only."
+- §01: "Notification … userId, message, link, readAt — Notifications are in-app only."
+- **Golden rule (§00):** "Where this document is silent, write an open question — never let the agent decide product behaviour."
+
+---
+
+## Reused approved decisions (Story #28)
+
+- **D-1** stack (TypeScript, Express, React + Vite, SQLite, SQL migrations, Vitest, npm) and **D-12** layout (`app/api`, `app/web`, `app/db`).
+- **D-5** `400 VALIDATION_ERROR` for malformed input; problem+json with a stable code for every error.
+- **Q-16** `401 UNAUTHENTICATED` "Not signed in." for every endpoint that needs a session; session cookie per **D-3**.
+- **D-6** `nationalId` is never part of auth responses; **D-7** all data fictional.
+- PRD engineering rules: migrations only, BR logic in `api/rules` as pure functions, injected Clock, ≥ 1 test per BR, suite < 1 minute.
+
+## Open questions
+
+Consolidated in `.squad/plans/00-open-questions.md` (one report for the whole backlog). This story is blocked until these are answered:
+
+- **PQ-22** — notification recipients and wording. *(Status 2026-10-18: decided (evidence + approved default) — see `00-open-questions.md`.)*
+
+---
+
+## Attachments
+
+None. Source document: `Khidma-PRD-Lite.pdf` at the workspace root (relevant text quoted above).
+
+---
+
+## Dependencies
+
+- **Blocked by / related ids:** #48 (F-10 Withdraw), #81 (F-13 Request info & respond), #83 (F-14 Approve & reject).
+- **Depends on code areas or other stories:** builds on the code created by the stories above. Execution order is in `.squad/plans/00-index.md`.
+
+## Technical hints (optional)
+
+- Repo root for application code: `app/`. Primary language: typescript.
+
+<!-- planning-context:start (generated by .squad/tools/planning_context.py — do not edit by hand) -->
+
+## Planning context from earlier plans
+
+Generated from the committed code in `app/` and from every plan that runs **before** this story. These contracts are already decided. **Reuse them exactly** (same file paths, function names and signatures, table and column names, problem codes, routes). Do not rename or re-create them.
+
+### Dependency plans
+
+- #48: `.squad/plans/withdraw/11-story-48.md`
+- #81: `.squad/plans/request-info-and-respond/14-story-81.md`
+- #83: `.squad/plans/approve-and-reject/15-story-83.md`
+
+Read a dependency plan with `read_file` only when a detail you need is not summarised below.
+
+### Migrations
+
+- **Next free migration number: `008`.** Use it for the first migration this story creates; never reuse a number below.
+
+- `001_accounts.sql` — existing code
+- `002_catalog.sql` — #33 (.squad/plans/public-catalog/03-story-33.md)
+- `003_requests.sql` — #38 (.squad/plans/draft-and-submit/05-story-38.md)
+- `004_declared_documents.sql` — #41 (.squad/plans/declare-documents/07-story-41.md)
+- `005_reference_sequences.sql` — #42 (.squad/plans/reference-number/08-story-42.md)
+- `006_certificates.sql` — #83 (.squad/plans/approve-and-reject/15-story-83.md)
+- `007_comments.sql` — #85 (.squad/plans/comments/16-story-85.md)
+
+### Tables (name: columns — owner)
+
+- `activity_log`: id, requestId, actorId, action, fromStatus, toStatus, note, at — #38 (.squad/plans/draft-and-submit/05-story-38.md)
+- `certificate_sequences`: serviceTypeId, year, nextSeq — #83 (.squad/plans/approve-and-reject/15-story-83.md)
+- `comments`: id, requestId, authorId, visibility, body, createdAt — #85 (.squad/plans/comments/16-story-85.md)
+- `declared_documents`: id, requestId, typeCode, documentNumber, updatedAt — #41 (.squad/plans/declare-documents/07-story-41.md)
+- `departments`: id, name, maxActivePerReviewer — existing code
+- `reference_sequences`: year, nextSeq — #42 (.squad/plans/reference-number/08-story-42.md)
+- `requests`: id, referenceNo, serviceTypeId, applicantId, status, formData, assigneeId, infoCycles, submittedAt, dueAt, decidedAt, rejectReason, certificateNo — #38 (.squad/plans/draft-and-submit/05-story-38.md)
+- `required_documents`: id, serviceTypeId, typeCode, label, mandatory — #33 (.squad/plans/public-catalog/03-story-33.md)
+- `schema_migrations`: name, appliedAt — existing code
+- `service_types`: id, code, name, departmentId, slaDays, allowMultiple, isActive — #33 (.squad/plans/public-catalog/03-story-33.md)
+- `users`: id, nationalId, name, email, role, departmentId, passwordHash — existing code
+
+### Exported helpers and types (planned)
+
+- `ASSIGNABLE_STATUSES` in `app/api/rules/assignment.ts` — `export const ASSIGNABLE_STATUSES: readonly RequestStatus[] = [` — #79 (.squad/plans/pick-and-assign/13-story-79.md)
+- `AccountsDeps` in `app/api/modules/accounts/accounts.routes.ts` — `export interface AccountsDeps extends AuthDeps { db: import('../../core/db/connection.js').Database }` — #79 (.squad/plans/pick-and-assign/13-story-79.md)
+- `ActivityEntry` in `app/web/src/api/requests.ts` — `export interface ActivityEntry {` — #46 (.squad/plans/my-requests-and-timeline/10-story-46.md)
+- `ActivityRow` in `app/api/modules/requests/requests.repository.ts` — `export interface ActivityRow {` — #38 (.squad/plans/draft-and-submit/05-story-38.md)
+- `ApiProblem` in `app/web/src/api/auth.ts` — `export class ApiProblem extends Error {` — existing code
+- `App` in `app/web/src/App.tsx` — `export function App() {` — existing code
+- `AppConfig` in `app/api/core/config.ts` — `export interface AppConfig { port: number; jwtSecret: string; databasePath: string }` — existing code
+- `AppDeps` in `app/api/app.ts` — `export interface AppDeps { db: Database; clock: Clock; jwtSecret: string; limiter?: LoginRateLimiter }` — existing code
+- `AssignUpdate` in `app/api/modules/requests/requests.repository.ts` — `export interface AssignUpdate {` — #79 (.squad/plans/pick-and-assign/13-story-79.md)
+- `AssignableRequest` in `app/api/rules/assignment.ts` — `export interface AssignableRequest {` — #79 (.squad/plans/pick-and-assign/13-story-79.md)
+- `AuthDeps` in `app/api/modules/accounts/auth.service.ts` — `export interface AuthDeps { db: Database; clock: Clock; jwtSecret: string }` — existing code
+- `CATALOG_SEED_FILE` in `app/api/core/db/seed.ts` — `export const CATALOG_SEED_FILE = fileURLToPath(new URL('../../../db/seed/services.json', import.meta.url));` — #33 (.squad/plans/public-catalog/03-story-33.md)
+- `CERTIFICATE_NUMBER_PATTERN` in `app/api/rules/certificate-number.ts` — `export const CERTIFICATE_NUMBER_PATTERN = /^[A-Z0-9][A-Z0-9-]*-\d{4}-\d{5}$/; // ⛔ PQ-21` — #83 (.squad/plans/approve-and-reject/15-story-83.md)
+- `CERTIFICATE_SEQ_MAX` in `app/api/rules/certificate-number.ts` — `export const CERTIFICATE_SEQ_MAX = 99_999;                        // ⛔ PQ-21` — #83 (.squad/plans/approve-and-reject/15-story-83.md)
+- `CERTIFICATE_SEQ_MIN` in `app/api/rules/certificate-number.ts` — `export const CERTIFICATE_SEQ_MIN = 1;` — #83 (.squad/plans/approve-and-reject/15-story-83.md)
+- `COMMENTABLE_STATUSES` in `app/api/rules/comments.ts` — `export const COMMENTABLE_STATUSES: readonly RequestStatus[] = [` — #85 (.squad/plans/comments/16-story-85.md)
+- `COMMENT_MAX` in `app/api/rules/comments.ts` — `export const COMMENT_MAX = 1000;                         // ⛔ PQ-16` — #85 (.squad/plans/comments/16-story-85.md)
+- `COMMENT_MIN` in `app/api/rules/comments.ts` — `export const COMMENT_MIN = 1;                            // ⛔ PQ-19 (any non-empty body)` — #85 (.squad/plans/comments/16-story-85.md)
+- `COMMENT_VISIBILITIES` in `app/api/rules/comments.ts` — `export const COMMENT_VISIBILITIES = ['PUBLIC', 'INTERNAL'] as const;` — #85 (.squad/plans/comments/16-story-85.md)
+- `Clock` in `app/api/core/clock.ts` — `export interface Clock { now(): Date }` — existing code
+- `Comment` in `app/web/src/api/requests.ts` — `export interface Comment {` — #85 (.squad/plans/comments/16-story-85.md)
+- `CommentRow` in `app/api/modules/requests/comments.repository.ts` — `export interface CommentRow {` — #85 (.squad/plans/comments/16-story-85.md)
+- `CommentTarget` in `app/api/rules/comments.ts` — `export interface CommentTarget {` — #85 (.squad/plans/comments/16-story-85.md)
+- `CommentVisibility` in `app/api/rules/comments.ts` — `export type CommentVisibility = (typeof COMMENT_VISIBILITIES)[number];` — #85 (.squad/plans/comments/16-story-85.md)
+- `DECIDABLE_STATUSES` in `app/api/rules/decision.ts` — `export const DECIDABLE_STATUSES: readonly RequestStatus[] = ['IN_REVIEW'] as const; // T-05, T-06` — #83 (.squad/plans/approve-and-reject/15-story-83.md)
+- `DOCUMENT_NUMBER_MAX` in `app/api/rules/declared-documents.ts` — `export const DOCUMENT_NUMBER_MAX = 64;     // PQ-16: tentative cap; revisit when answered.` — #41 (.squad/plans/declare-documents/07-story-41.md)
+- `DOCUMENT_NUMBER_MIN` in `app/api/rules/declared-documents.ts` — `export const DOCUMENT_NUMBER_MIN = 1;      // PQ-16: open question; current rule = non-empty trimmed.` — #41 (.squad/plans/declare-documents/07-story-41.md)
+- `DashboardDeps` in `app/api/modules/dashboard/dashboard.routes.ts` — `export interface DashboardDeps extends AuthDeps { db: Database; clock: Clock; timezone: string }` — #92 (.squad/plans/supervisor-dashboard/18-story-92.md)
+- `DashboardReviewer` in `app/web/src/api/dashboard.ts` — `export interface DashboardReviewer { id: number; name: string; active: number }` — #92 (.squad/plans/supervisor-dashboard/18-story-92.md)
+- `DashboardSummary` in `app/api/modules/dashboard/dashboard.routes.ts` — `export interface DashboardSummary {` — #92 (.squad/plans/supervisor-dashboard/18-story-92.md)
+- `Database` in `app/api/core/db/connection.ts` — `export type Database = BetterSqlite3.Database;` — existing code
+- `DecidableRequest` in `app/api/rules/decision.ts` — `export interface DecidableRequest {` — #83 (.squad/plans/approve-and-reject/15-story-83.md)
+- `DeclaredDocument` in `app/web/src/api/requests.ts` — `export interface DeclaredDocument {` — #41 (.squad/plans/declare-documents/07-story-41.md)
+- `DeclaredDocumentInput` in `app/api/rules/declared-documents.ts` — `export interface DeclaredDocumentInput {` — #41 (.squad/plans/declare-documents/07-story-41.md)
+- `DeclaredDocumentRow` in `app/api/modules/requests/declared-documents.repository.ts` — `export interface DeclaredDocumentRow {` — #41 (.squad/plans/declare-documents/07-story-41.md)
+- `DepartmentReviewer` in `app/web/src/api/accounts.ts` — `export type DepartmentReviewer = Omit<SessionUser, 'email'> & { email: string };` — #79 (.squad/plans/pick-and-assign/13-story-79.md)
+- `DepartmentSummaryRow` in `app/api/modules/dashboard/dashboard.repository.ts` — `export interface DepartmentSummaryRow { id: number; name: string }` — #92 (.squad/plans/supervisor-dashboard/18-story-92.md)
+- `DueDateInputs` in `app/api/rules/due-date.ts` — `export interface DueDateInputs {` — #88 (.squad/plans/due-date-calculator/06-story-88.md)
+- `DuplicateGuardInput` in `app/api/rules/duplicate-guard.ts` — `export interface DuplicateGuardInput {` — #44 (.squad/plans/duplicate-guard/09-story-44.md)
+- `INFO_CYCLES_MAX` in `app/api/rules/info-request.ts` — `export const INFO_CYCLES_MAX = 2;        // BR-07` — #81 (.squad/plans/request-info-and-respond/14-story-81.md)
+- `INFO_MESSAGE_MAX` in `app/api/rules/info-request.ts` — `export const INFO_MESSAGE_MAX = 1000;    // ⛔ PQ-16 (recommended cap)` — #81 (.squad/plans/request-info-and-respond/14-story-81.md)
+- `INFO_MESSAGE_MIN` in `app/api/rules/info-request.ts` — `export const INFO_MESSAGE_MIN = 20;      // BR-07` — #81 (.squad/plans/request-info-and-respond/14-story-81.md)
+- `InfoRequestTarget` in `app/api/rules/info-request.ts` — `export interface InfoRequestTarget {` — #81 (.squad/plans/request-info-and-respond/14-story-81.md)
+- `InsertCommentInput` in `app/api/modules/requests/comments.repository.ts` — `export interface InsertCommentInput {` — #85 (.squad/plans/comments/16-story-85.md)
+- `JUSTIFICATION_MAX` in `app/api/rules/decision.ts` — `export const JUSTIFICATION_MAX = 1000;               // ⛔ PQ-16` — #83 (.squad/plans/approve-and-reject/15-story-83.md)
+- `JUSTIFICATION_MIN` in `app/api/rules/decision.ts` — `export const JUSTIFICATION_MIN = 30;                 // BR-08` — #83 (.squad/plans/approve-and-reject/15-story-83.md)
+- `LoginPage` in `app/web/src/pages/LoginPage.tsx` — `export function LoginPage() {` — existing code
+- `LoginRateLimiter` in `app/api/modules/accounts/login-rate-limiter.ts` — `export interface LoginRateLimiter {` — existing code
+- `MIGRATIONS_DIR` in `app/api/core/db/migrate.ts` — `export const MIGRATIONS_DIR = fileURLToPath(new URL('../../../db/migrations/', import.meta.url));` — existing code
+- `MandatoryDocument` in `app/api/rules/declared-documents.ts` — `export interface MandatoryDocument { typeCode: string; mandatory: boolean }` — #41 (.squad/plans/declare-documents/07-story-41.md)
+- `NormalisedDeclaredDocument` in `app/api/rules/declared-documents.ts` — `export interface NormalisedDeclaredDocument {` — #41 (.squad/plans/declare-documents/07-story-41.md)
+- `NormalisedServiceSettings` in `app/api/rules/service-settings.ts` — `export interface NormalisedServiceSettings { slaDays?: number; isActive?: boolean }` — #36 (.squad/plans/edit-service-settings/04-story-36.md)
+- `OPEN_STATUSES` in `app/api/rules/duplicate-guard.ts` — `export const OPEN_STATUSES: readonly RequestStatus[] = (` — #44 (.squad/plans/duplicate-guard/09-story-44.md)
+- `OpenCountInput` in `app/api/modules/requests/requests.repository.ts` — `export interface OpenCountInput {` — #44 (.squad/plans/duplicate-guard/09-story-44.md)
+- `OpenRow` in `app/api/modules/dashboard/dashboard.repository.ts` — `export interface OpenRow {` — #92 (.squad/plans/supervisor-dashboard/18-story-92.md)
+- `PICKABLE_STATUSES` in `app/api/rules/assignment.ts` — `export const PICKABLE_STATUSES: readonly RequestStatus[] = ['SUBMITTED'] as const; // BR-05, T-02` — #79 (.squad/plans/pick-and-assign/13-story-79.md)
+- `PROBLEM_TITLES` in `app/api/core/problem.ts` — `export const PROBLEM_TITLES: Record<ProblemCode, string> = {` — existing code
+- `ParsedCommentInput` in `app/api/rules/comments.ts` — `export interface ParsedCommentInput {` — #85 (.squad/plans/comments/16-story-85.md)
+- `PlaceholderArea` in `app/web/src/pages/PlaceholderArea.tsx` — `export function PlaceholderArea({ heading }: { heading: string }) {` — existing code
+- `ProblemCode` in `app/api/core/problem.ts` — `export type ProblemCode = 'INVALID_CREDENTIALS' | 'VALIDATION_ERROR' | 'RATE_LIMITED' | 'UNAUTHENTICATED'; // UNAUTHENTICATED: Q-16` — existing code
+- `ProblemError` in `app/api/core/problem.ts` — `export class ProblemError extends Error {` — existing code
+- `PublicRequiredDocument` in `app/api/modules/catalog/services.repository.ts` — `export interface PublicRequiredDocument {` — #33 (.squad/plans/public-catalog/03-story-33.md)
+- `PublicServiceDetail` in `app/api/modules/catalog/services.repository.ts` — `export interface PublicServiceDetail extends PublicServiceSummary {` — #33 (.squad/plans/public-catalog/03-story-33.md)
+- `PublicServiceSummary` in `app/api/modules/catalog/services.repository.ts` — `export interface PublicServiceSummary {` — #33 (.squad/plans/public-catalog/03-story-33.md)
+- `PublicUser` in `app/api/modules/accounts/users.repository.ts` — `export interface PublicUser { id: number; name: string; email: string; role: Role; departmentId: number | null }` — existing code
+- `QueueFilters` in `app/api/modules/requests/requests.repository.ts` — `export interface QueueFilters {` — #51 (.squad/plans/department-queue/12-story-51.md)
+- `QueueItem` in `app/web/src/api/requests.ts` — `export interface QueueItem extends RequestListItem {` — #51 (.squad/plans/department-queue/12-story-51.md)
+- `QueueRow` in `app/api/modules/requests/requests.repository.ts` — `export interface QueueRow extends RequestListRow {` — #51 (.squad/plans/department-queue/12-story-51.md)
+- `REFERENCE_NUMBER_PATTERN` in `app/api/rules/reference-number.ts` — `export const REFERENCE_NUMBER_PATTERN = /^KH-\d{4}-\d{6}$/;` — #42 (.squad/plans/reference-number/08-story-42.md)
+- `REFERENCE_NUMBER_TIMEZONE` in `app/api/rules/reference-number.ts` — `export const REFERENCE_NUMBER_TIMEZONE = 'Asia/Riyadh'; // PRD §01` — #42 (.squad/plans/reference-number/08-story-42.md)
+- `REFERENCE_SEQ_MAX` in `app/api/rules/reference-number.ts` — `export const REFERENCE_SEQ_MAX = 999_999;` — #42 (.squad/plans/reference-number/08-story-42.md)
+- `REFERENCE_SEQ_MIN` in `app/api/rules/reference-number.ts` — `export const REFERENCE_SEQ_MIN = 1;` — #42 (.squad/plans/reference-number/08-story-42.md)
+- `REJECT_REASON_CODES` in `app/api/rules/decision.ts` — `export const REJECT_REASON_CODES = ['DOC_INVALID', 'NOT_ELIGIBLE', 'DUPLICATE', 'OTHER'] as const; // BR-08` — #83 (.squad/plans/approve-and-reject/15-story-83.md)
+- `RejectInput` in `app/api/rules/decision.ts` — `export interface RejectInput { reasonCode: RejectReasonCode; justification: string }` — #83 (.squad/plans/approve-and-reject/15-story-83.md)
+- `RejectReasonCode` in `app/api/rules/decision.ts` — `export type RejectReasonCode = (typeof REJECT_REASON_CODES)[number];` — #83 (.squad/plans/approve-and-reject/15-story-83.md)
+- `RequestListItem` in `app/web/src/api/requests.ts` — `export interface RequestListItem {` — #46 (.squad/plans/my-requests-and-timeline/10-story-46.md)
+- `RequestListRow` in `app/api/modules/requests/requests.repository.ts` — `export interface RequestListRow {` — #46 (.squad/plans/my-requests-and-timeline/10-story-46.md)
+- `RequestRecord` in `app/web/src/api/requests.ts` — `export interface RequestRecord {` — #38 (.squad/plans/draft-and-submit/05-story-38.md)
+- `RequestRow` in `app/api/modules/requests/requests.repository.ts` — `export interface RequestRow {` — #38 (.squad/plans/draft-and-submit/05-story-38.md)
+- `RequestStatus` in `app/api/rules/request-transitions.ts` — `export type RequestStatus =` — #38 (.squad/plans/draft-and-submit/05-story-38.md)
+- `RequestsDeps` in `app/api/modules/requests/requests.routes.ts` — `export interface RequestsDeps extends AuthDeps { db: Database; clock: Clock }` — #38 (.squad/plans/draft-and-submit/05-story-38.md)
+- `RequireRole` in `app/web/src/session/RequireRole.tsx` — `export function RequireRole({ roles, children }: { roles: Role[]; children: ReactNode }) {` — #30 (.squad/plans/role-guards/02-story-30.md)
+- `RequiredDocument` in `app/web/src/api/catalog.ts` — `export interface RequiredDocument {` — #33 (.squad/plans/public-catalog/03-story-33.md)
+- `Role` in `app/api/modules/accounts/users.repository.ts` — `export type Role = 'APPLICANT' | 'REVIEWER' | 'SUPERVISOR';` — existing code
+- `SEED_FILE` in `app/api/core/db/seed.ts` — `export const SEED_FILE = fileURLToPath(new URL('../../../db/seed/accounts.json', import.meta.url));` — existing code
+- `SEED_PASSWORD` in `app/api/core/db/seed.ts` — `export const SEED_PASSWORD = 'Passw0rd!'; // PRD §06 seed data` — existing code
+- `SESSION_COOKIE` in `app/api/modules/accounts/auth.service.ts` — `export const SESSION_COOKIE = 'khidma_session';` — existing code
+- `SESSION_TTL_SECONDS` in `app/api/modules/accounts/auth.service.ts` — `export const SESSION_TTL_SECONDS = 3600;` — existing code
+- `SLA_DECIDED_STATUSES` in `app/api/rules/sla-status.ts` — `export const SLA_DECIDED_STATUSES: readonly RequestStatus[] = [` — #90 (.squad/plans/sla-status-and-queue-sort/17-story-90.md)
+- `SLA_IN_FLIGHT_STATUSES` in `app/api/rules/sla-status.ts` — `export const SLA_IN_FLIGHT_STATUSES: readonly RequestStatus[] = [` — #90 (.squad/plans/sla-status-and-queue-sort/17-story-90.md)
+- `ServiceDetail` in `app/web/src/api/catalog.ts` — `export interface ServiceDetail extends ServiceSummary {` — #33 (.squad/plans/public-catalog/03-story-33.md)
+- `ServiceRow` in `app/api/modules/catalog/services.repository.ts` — `export interface ServiceRow {` — #36 (.squad/plans/edit-service-settings/04-story-36.md)
+- `ServiceSettingsInput` in `app/api/rules/service-settings.ts` — `export interface ServiceSettingsInput { slaDays?: unknown; active?: unknown }` — #36 (.squad/plans/edit-service-settings/04-story-36.md)
+- `ServiceSettingsPatch` in `app/api/modules/catalog/services.repository.ts` — `export interface ServiceSettingsPatch {` — #36 (.squad/plans/edit-service-settings/04-story-36.md)
+- `ServiceSummary` in `app/web/src/api/catalog.ts` — `export interface ServiceSummary {` — #33 (.squad/plans/public-catalog/03-story-33.md)
+- `ServicesDeps` in `app/api/modules/catalog/services.routes.ts` — `export interface ServicesDeps { db: Database }` — #33 (.squad/plans/public-catalog/03-story-33.md)
+- `SessionProvider` in `app/web/src/session/SessionContext.tsx` — `export function SessionProvider({ children }: { children: ReactNode }) {` — existing code
+- `SessionUser` in `app/web/src/api/auth.ts` — `export interface SessionUser { id: number; name: string; email: string; role: Role; departmentId: number | null }` — existing code
+- `SlaBadge` in `app/web/src/components/SlaBadge.tsx` — `export function SlaBadge({ status }: { status: SlaStatus | null }) {` — #90 (.squad/plans/sla-status-and-queue-sort/17-story-90.md)
+- `SlaInputs` in `app/api/rules/sla-status.ts` — `export interface SlaInputs {` — #90 (.squad/plans/sla-status-and-queue-sort/17-story-90.md)
+- `SlaStatus` in `app/api/rules/sla-status.ts` — `export type SlaStatus = 'ON_TRACK' | 'AT_RISK' | 'OVERDUE';` — #90 (.squad/plans/sla-status-and-queue-sort/17-story-90.md)
+- `SubmittableRequest` in `app/api/rules/request-transitions.ts` — `export interface SubmittableRequest {` — #38 (.squad/plans/draft-and-submit/05-story-38.md)
+- `TEST_SECRET` in `app/api/test/helpers.ts` — `export const TEST_SECRET = 'test-secret';` — existing code
+- `USERS` in `app/web/src/test/fetchStub.ts` — `export const USERS: Record<string, SessionUser> = {` — existing code
+- `UserWithHash` in `app/api/modules/accounts/users.repository.ts` — `export interface UserWithHash extends PublicUser { passwordHash: string }` — existing code
+- `WITHDRAWABLE_STATUSES` in `app/api/rules/request-transitions.ts` — `export const WITHDRAWABLE_STATUSES: readonly RequestStatus[] = [` — #48 (.squad/plans/withdraw/11-story-48.md)
+- `WORKING_DAYS` in `app/api/rules/due-date.ts` — `export const WORKING_DAYS = [0, 1, 2, 3, 4] as const; // Sun..Thu in TZ-local getDay()` — #88 (.squad/plans/due-date-calculator/06-story-88.md)
+- `accountsRouter` in `app/api/modules/accounts/accounts.routes.ts` — `export function accountsRouter(deps: AccountsDeps): Router {` — #79 (.squad/plans/pick-and-assign/13-story-79.md)
+- `allocateCertificateNumber` in `app/api/modules/requests/certificate-sequence.repository.ts` — `export function allocateCertificateNumber(` — #83 (.squad/plans/approve-and-reject/15-story-83.md)
+- `allocateReferenceNumber` in `app/api/modules/requests/reference-sequence.repository.ts` — `export function allocateReferenceNumber(db: Database, clock: Clock): string {` — #42 (.squad/plans/reference-number/08-story-42.md)
+- `appendActivity` in `app/api/modules/requests/requests.repository.ts` — `export function appendActivity(db: Database, row: ActivityRow): void {` — #38 (.squad/plans/draft-and-submit/05-story-38.md)
+- `approveRequest` in `app/web/src/api/requests.ts` — `export async function approveRequest(id: number): Promise<RequestRecord>;` — #83 (.squad/plans/approve-and-reject/15-story-83.md)
+- `assertCanAssign` in `app/api/rules/assignment.ts` — `export function assertCanAssign(` — #79 (.squad/plans/pick-and-assign/13-story-79.md)
+- `assertCanDecide` in `app/api/rules/decision.ts` — `export function assertCanDecide(req: DecidableRequest, actor: PublicUser): void { /* status + role/scope */ }` — #83 (.squad/plans/approve-and-reject/15-story-83.md)
+- `assertCanEditDraft` in `app/api/rules/request-transitions.ts` — `export function assertCanEditDraft(req: SubmittableRequest): void {` — #38 (.squad/plans/draft-and-submit/05-story-38.md)
+- `assertCanPick` in `app/api/rules/assignment.ts` — `export function assertCanPick(req: AssignableRequest, reviewer: PublicUser): void {` — #79 (.squad/plans/pick-and-assign/13-story-79.md)
+- `assertCanPostComment` in `app/api/rules/comments.ts` — `export function assertCanPostComment(` — #85 (.squad/plans/comments/16-story-85.md)
+- `assertCanRequestInfo` in `app/api/rules/info-request.ts` — `export function assertCanRequestInfo(` — #81 (.squad/plans/request-info-and-respond/14-story-81.md)
+- `assertCanRespond` in `app/api/rules/info-request.ts` — `export function assertCanRespond(` — #81 (.squad/plans/request-info-and-respond/14-story-81.md)
+- `assertCanSubmit` in `app/api/rules/request-transitions.ts` — `export function assertCanSubmit(req: SubmittableRequest): void {` — #38 (.squad/plans/draft-and-submit/05-story-38.md)
+- `assertCanWithdraw` in `app/api/rules/request-transitions.ts` — `export function assertCanWithdraw(req: SubmittableRequest): void {` — #48 (.squad/plans/withdraw/11-story-48.md)
+- `assertDepartmentScope` in `app/api/rules/data-scope.ts` — `export function assertDepartmentScope(user: PublicUser, recordDepartmentId: number): void {` — #30 (.squad/plans/role-guards/02-story-30.md)
+- `assertDocumentsComplete` in `app/api/rules/declared-documents.ts` — `export function assertDocumentsComplete(` — #41 (.squad/plans/declare-documents/07-story-41.md)
+- `assertFormDataPresent` in `app/api/rules/request-transitions.ts` — `export function assertFormDataPresent(formData: unknown): asserts formData is Record<string, unknown> {` — #38 (.squad/plans/draft-and-submit/05-story-38.md)
+- `assertLoadLimit` in `app/api/rules/assignment.ts` — `export function assertLoadLimit(activeCount: number, maxActive: number): void {` — #79 (.squad/plans/pick-and-assign/13-story-79.md)
+- `assertNoDuplicateOpenRequest` in `app/api/rules/duplicate-guard.ts` — `export function assertNoDuplicateOpenRequest(input: DuplicateGuardInput): void {` — #44 (.squad/plans/duplicate-guard/09-story-44.md)
+- `assertOwnsRecord` in `app/api/rules/data-scope.ts` — `export function assertOwnsRecord(user: PublicUser, ownerUserId: number): void {` — #30 (.squad/plans/role-guards/02-story-30.md)
+- `assignRequest` in `app/api/modules/requests/requests.repository.ts` — `export function assignRequest(db: Database, update: AssignUpdate): void {` — #79 (.squad/plans/pick-and-assign/13-story-79.md)
+- `authRouter` in `app/api/modules/accounts/auth.routes.ts` — `export function authRouter(deps: AuthDeps & { limiter: LoginRateLimiter }): Router {` — existing code
+- `authenticate` in `app/api/modules/accounts/auth.service.ts` — `export async function authenticate(deps: AuthDeps, email: string, password: string): Promise<{ user: PublicUser; token: string }> {` — existing code
+- `calculateDueAt` in `app/api/rules/due-date.ts` — `export function calculateDueAt(input: DueDateInputs): Date { /* … */ }` — #88 (.squad/plans/due-date-calculator/06-story-88.md)
+- `computeSlaStatus` in `app/api/rules/sla-status.ts` — `export function computeSlaStatus(input: SlaInputs): SlaStatus | null { /* … */ }` — #90 (.squad/plans/sla-status-and-queue-sort/17-story-90.md)
+- `countActiveForReviewer` in `app/api/modules/requests/requests.repository.ts` — `export function countActiveForReviewer(db: Database, reviewerId: number): number {` — #79 (.squad/plans/pick-and-assign/13-story-79.md)
+- `countOpenForApplicantAndService` in `app/api/modules/requests/requests.repository.ts` — `export function countOpenForApplicantAndService(db: Database, input: OpenCountInput): number {` — #44 (.squad/plans/duplicate-guard/09-story-44.md)
+- `createApp` in `app/api/app.ts` — `export function createApp(deps: AppDeps): Express {` — existing code
+- `createDraft` in `app/web/src/api/requests.ts` — `export async function createDraft(serviceTypeId: number): Promise<RequestRecord> {` — #38 (.squad/plans/draft-and-submit/05-story-38.md)
+- `createLoginRateLimiter` in `app/api/modules/accounts/login-rate-limiter.ts` — `export function createLoginRateLimiter(` — existing code
+- `dashboardRouter` in `app/api/modules/dashboard/dashboard.routes.ts` — `export function dashboardRouter(deps: DashboardDeps): Router {` — #92 (.squad/plans/supervisor-dashboard/18-story-92.md)
+- `fakeClock` in `app/api/test/helpers.ts` — `export function fakeClock(start: Date): Clock & { advance(ms: number): void } {` — existing code
+- `fetchDashboard` in `app/web/src/api/dashboard.ts` — `export async function fetchDashboard(): Promise<DashboardSummary> {` — #92 (.squad/plans/supervisor-dashboard/18-story-92.md)
+- `fetchMe` in `app/web/src/api/auth.ts` — `export async function fetchMe(): Promise<SessionUser | null> {` — existing code
+- `fetchRequest` in `app/web/src/api/requests.ts` — `export async function fetchRequest(id: number): Promise<RequestRecord> {` — #38 (.squad/plans/draft-and-submit/05-story-38.md)
+- `fetchService` in `app/web/src/api/catalog.ts` — `export async function fetchService(code: string): Promise<ServiceDetail> {` — #33 (.squad/plans/public-catalog/03-story-33.md)
+- `findActiveServiceDetail` in `app/api/modules/catalog/services.repository.ts` — `export function findActiveServiceDetail(db: Database, code: string): PublicServiceDetail | undefined {` — #33 (.squad/plans/public-catalog/03-story-33.md)
+- `findById` in `app/api/modules/requests/requests.repository.ts` — `export function findById(db: Database, id: number): RequestRow | undefined {` — #38 (.squad/plans/draft-and-submit/05-story-38.md)
+- `findDepartmentById` in `app/api/modules/dashboard/dashboard.repository.ts` — `export function findDepartmentById(db: Database, id: number): DepartmentSummaryRow | undefined;` — #92 (.squad/plans/supervisor-dashboard/18-story-92.md)
+- `findPublicUserById` in `app/api/modules/accounts/users.repository.ts` — `export function findPublicUserById(db: Database, id: number): PublicUser | undefined {` — existing code
+- `findServiceById` in `app/api/modules/catalog/services.repository.ts` — `export function findServiceById(db: Database, id: number): ServiceRow | undefined {` — #36 (.squad/plans/edit-service-settings/04-story-36.md)
+- `findServiceDetailById` in `app/api/modules/catalog/services.repository.ts` — `export function findServiceDetailById(db: Database, id: number): (PublicServiceDetail & { isActive: boolean }) | undefined {` — #36 (.squad/plans/edit-service-settings/04-story-36.md)
+- `findUserByEmail` in `app/api/modules/accounts/users.repository.ts` — `export function findUserByEmail(db: Database, normalizedEmail: string): UserWithHash | undefined {` — existing code
+- `formatCertificateNumber` in `app/api/rules/certificate-number.ts` — `export function formatCertificateNumber(serviceCode: string, year: number, seq: number): string {` — #83 (.squad/plans/approve-and-reject/15-story-83.md)
+- `formatReferenceNumber` in `app/api/rules/reference-number.ts` — `export function formatReferenceNumber(year: number, seq: number): string {` — #42 (.squad/plans/reference-number/08-story-42.md)
+- `insertComment` in `app/api/modules/requests/comments.repository.ts` — `export function insertComment(db: Database, input: InsertCommentInput): CommentRow {` — #85 (.squad/plans/comments/16-story-85.md)
+- `insertDraft` in `app/api/modules/requests/requests.repository.ts` — `export function insertDraft(db: Database, input: { serviceTypeId: number; applicantId: number }): RequestRow {` — #38 (.squad/plans/draft-and-submit/05-story-38.md)
+- `isWorkingDay` in `app/api/rules/due-date.ts` — `export function isWorkingDay(localDate: { year: number; month: number; day: number; weekday: number }): boolean {` — #88 (.squad/plans/due-date-calculator/06-story-88.md)
+- `json` in `app/web/src/test/fetchStub.ts` — `export function json(status: number, body?: unknown): Response {` — existing code
+- `listActiveServices` in `app/api/modules/catalog/services.repository.ts` — `export function listActiveServices(db: Database): PublicServiceSummary[] {` — #33 (.squad/plans/public-catalog/03-story-33.md)
+- `listActivityByRequest` in `app/api/modules/requests/requests.repository.ts` — `export function listActivityByRequest(db: Database, requestId: number): ActivityRow[];` — #46 (.squad/plans/my-requests-and-timeline/10-story-46.md)
+- `listByRequest` in `app/api/modules/requests/declared-documents.repository.ts` — `export function listByRequest(db: Database, requestId: number): DeclaredDocumentRow[] { /* ... */ }` — #41 (.squad/plans/declare-documents/07-story-41.md)
+- `listComments` in `app/web/src/api/requests.ts` — `export async function listComments(requestId: number): Promise<Comment[]> {` — #85 (.squad/plans/comments/16-story-85.md)
+- `listCommentsByRequest` in `app/api/modules/requests/comments.repository.ts` — `export function listCommentsByRequest(` — #85 (.squad/plans/comments/16-story-85.md)
+- `listDepartmentQueue` in `app/api/modules/requests/requests.repository.ts` — `export function listDepartmentQueue(db: Database, filters: QueueFilters): QueueRow[];` — #51 (.squad/plans/department-queue/12-story-51.md)
+- `listDepartmentReviewers` in `app/web/src/api/accounts.ts` — `export async function listDepartmentReviewers(): Promise<DepartmentReviewer[]> {` — #79 (.squad/plans/pick-and-assign/13-story-79.md)
+- `listMine` in `app/web/src/api/requests.ts` — `export async function listMine(): Promise<RequestListItem[]> {` — #46 (.squad/plans/my-requests-and-timeline/10-story-46.md)
+- `listMineForApplicant` in `app/api/modules/requests/requests.repository.ts` — `export function listMineForApplicant(db: Database, applicantId: number): RequestListRow[];` — #46 (.squad/plans/my-requests-and-timeline/10-story-46.md)
+- `listOpenForDepartment` in `app/api/modules/dashboard/dashboard.repository.ts` — `export function listOpenForDepartment(db: Database, departmentId: number): OpenRow[];` — #92 (.squad/plans/supervisor-dashboard/18-story-92.md)
+- `listQueue` in `app/web/src/api/requests.ts` — `export async function listQueue(filters: QueueFilters = {}): Promise<QueueItem[]> {` — #51 (.squad/plans/department-queue/12-story-51.md)
+- `listRequiredDocumentsByServiceId` in `app/api/modules/catalog/services.repository.ts` — `export function listRequiredDocumentsByServiceId(` — #41 (.squad/plans/declare-documents/07-story-41.md)
+- `listReviewersByDepartment` in `app/api/modules/accounts/users.repository.ts` — `export function listReviewersByDepartment(db: Database, departmentId: number): PublicUser[] {` — #79 (.squad/plans/pick-and-assign/13-story-79.md)
+- `listServices` in `app/web/src/api/catalog.ts` — `export async function listServices(): Promise<ServiceSummary[]> {` — #33 (.squad/plans/public-catalog/03-story-33.md)
+- `loadConfig` in `app/api/core/config.ts` — `export function loadConfig(env: NodeJS.ProcessEnv): AppConfig {` — existing code
+- `login` in `app/web/src/api/auth.ts` — `export async function login(email: string, password: string): Promise<SessionUser> {` — existing code
+- `logout` in `app/web/src/api/auth.ts` — `export async function logout(): Promise<void> {` — existing code
+- `markApproved` in `app/api/modules/requests/requests.repository.ts` — `export function markApproved(` — #83 (.squad/plans/approve-and-reject/15-story-83.md)
+- `markInReview` in `app/api/modules/requests/requests.repository.ts` — `export function markInReview(db: Database, id: number, at: string): void {` — #81 (.squad/plans/request-info-and-respond/14-story-81.md)
+- `markInfoRequested` in `app/api/modules/requests/requests.repository.ts` — `export function markInfoRequested(db: Database, id: number, at: string): void {` — #81 (.squad/plans/request-info-and-respond/14-story-81.md)
+- `markRejected` in `app/api/modules/requests/requests.repository.ts` — `export function markRejected(` — #83 (.squad/plans/approve-and-reject/15-story-83.md)
+- `markSubmitted` in `app/api/modules/requests/requests.repository.ts` — `export function markSubmitted(db: Database, id: number, submittedAt: string): void {` — #38 (.squad/plans/draft-and-submit/05-story-38.md)
+- `markWithdrawn` in `app/api/modules/requests/requests.repository.ts` — `export function markWithdrawn(db: Database, id: number, at: string): void;` — #48 (.squad/plans/withdraw/11-story-48.md)
+- `normalizeCommentBody` in `app/api/rules/comments.ts` — `export function normalizeCommentBody(raw: unknown): string {` — #85 (.squad/plans/comments/16-story-85.md)
+- `normalizeEmail` in `app/api/modules/accounts/email.ts` — `export function normalizeEmail(raw: string): string { return raw.trim().toLowerCase(); }` — existing code
+- `normalizeInfoMessage` in `app/api/rules/info-request.ts` — `export function normalizeInfoMessage(raw: unknown): string {` — #81 (.squad/plans/request-info-and-respond/14-story-81.md)
+- `normalizeJustification` in `app/api/rules/decision.ts` — `export function normalizeJustification(raw: unknown): string { /* trim; code-point count */ }` — #83 (.squad/plans/approve-and-reject/15-story-83.md)
+- `openDatabase` in `app/api/core/db/connection.ts` — `export function openDatabase(path: string): Database {` — existing code
+- `parseCommentInput` in `app/api/rules/comments.ts` — `export function parseCommentInput(body: unknown): ParsedCommentInput {` — #85 (.squad/plans/comments/16-story-85.md)
+- `parseDeclaredDocuments` in `app/api/rules/declared-documents.ts` — `export function parseDeclaredDocuments(` — #41 (.squad/plans/declare-documents/07-story-41.md)
+- `parseRejectDecision` in `app/api/rules/decision.ts` — `export function parseRejectDecision(body: unknown): RejectInput { /* throws ProblemError(400,'VALIDATION_ERROR',…,fields) */ }` — #83 (.squad/plans/approve-and-reject/15-story-83.md)
+- `parseServiceSettings` in `app/api/rules/service-settings.ts` — `export function parseServiceSettings(input: ServiceSettingsInput): NormalisedServiceSettings {` — #36 (.squad/plans/edit-service-settings/04-story-36.md)
+- `patchDraft` in `app/web/src/api/requests.ts` — `export async function patchDraft(id: number, formData: Record<string, unknown>): Promise<RequestRecord> {` — #38 (.squad/plans/draft-and-submit/05-story-38.md)
+- `pickRequest` in `app/web/src/api/requests.ts` — `export async function pickRequest(id: number): Promise<RequestRecord> {` — #79 (.squad/plans/pick-and-assign/13-story-79.md)
+- `postComment` in `app/web/src/api/requests.ts` — `export async function postComment(` — #85 (.squad/plans/comments/16-story-85.md)
+- `problem` in `app/web/src/test/fetchStub.ts` — `export const problem = (status: number, code: string, title: string) =>` — existing code
+- `problemMiddleware` in `app/api/core/problem.ts` — `export function problemMiddleware(): ErrorRequestHandler {` — existing code
+- `putDeclaredDocuments` in `app/web/src/api/requests.ts` — `export async function putDeclaredDocuments(` — #41 (.squad/plans/declare-documents/07-story-41.md)
+- `rejectRequest` in `app/web/src/api/requests.ts` — `export async function rejectRequest(` — #83 (.squad/plans/approve-and-reject/15-story-83.md)
+- `replaceForRequest` in `app/api/modules/requests/declared-documents.repository.ts` — `export function replaceForRequest(` — #41 (.squad/plans/declare-documents/07-story-41.md)
+- `requestInfo` in `app/web/src/api/requests.ts` — `export async function requestInfo(id: number, message: string): Promise<RequestRecord> {` — #81 (.squad/plans/request-info-and-respond/14-story-81.md)
+- `requestsRouter` in `app/api/modules/requests/requests.routes.ts` — `export function requestsRouter(deps: RequestsDeps): Router {` — #38 (.squad/plans/draft-and-submit/05-story-38.md)
+- `requireRole` in `app/api/modules/accounts/require-role.ts` — `export function requireRole(deps: AuthDeps, roles: readonly Role[]): RequestHandler {` — #30 (.squad/plans/role-guards/02-story-30.md)
+- `resolveCommentReadScope` in `app/api/rules/comments.ts` — `export function resolveCommentReadScope(` — #85 (.squad/plans/comments/16-story-85.md)
+- `resolveSession` in `app/api/modules/accounts/auth.service.ts` — `export function resolveSession(deps: AuthDeps, token: string | undefined): PublicUser {` — existing code
+- `respondToInfo` in `app/web/src/api/requests.ts` — `export async function respondToInfo(id: number, message?: string): Promise<RequestRecord> {` — #81 (.squad/plans/request-info-and-respond/14-story-81.md)
+- `riyadhYear` in `app/api/rules/reference-number.ts` — `export function riyadhYear(at: Date): number {` — #42 (.squad/plans/reference-number/08-story-42.md)
+- `roleHome` in `app/web/src/session/roleHome.ts` — `export function roleHome(role: Role): string {` — existing code
+- `runMigrations` in `app/api/core/db/migrate.ts` — `export function runMigrations(db: Database, migrationsDir: string, clock: Clock): string[] {` — existing code
+- `seedAccounts` in `app/api/core/db/seed.ts` — `export async function seedAccounts(db: Database, seedFile: string): Promise<{ departments: number; users: number }> {` — existing code
+- `seedCatalog` in `app/api/core/db/seed.ts` — `export function seedCatalog(db: Database, seedFile: string): { serviceTypes: number; requiredDocuments: number } {` — #33 (.squad/plans/public-catalog/03-story-33.md)
+- `seededDb` in `app/api/test/helpers.ts` — `export async function seededDb(): Promise<Database> {` — existing code
+- `servicesRouter` in `app/api/modules/catalog/services.routes.ts` — `export function servicesRouter(deps: ServicesDeps): Router {` — #33 (.squad/plans/public-catalog/03-story-33.md)
+- `setReferenceNo` in `app/api/modules/requests/requests.repository.ts` — `export function setReferenceNo(db: Database, id: number, referenceNo: string): void {` — #42 (.squad/plans/reference-number/08-story-42.md)
+- `stubFetch` in `app/web/src/test/fetchStub.ts` — `export function stubFetch(handlers: Record<string, Handler> = {}) {` — existing code
+- `submitRequest` in `app/web/src/api/requests.ts` — `export async function submitRequest(id: number): Promise<RequestRecord> {` — #38 (.squad/plans/draft-and-submit/05-story-38.md)
+- `systemClock` in `app/api/core/clock.ts` — `export const systemClock: Clock = { now: () => new Date() };` — existing code
+- `updateFormData` in `app/api/modules/requests/requests.repository.ts` — `export function updateFormData(db: Database, id: number, formData: Record<string, unknown>): void {` — #38 (.squad/plans/draft-and-submit/05-story-38.md)
+- `updateServiceSettings` in `app/api/modules/catalog/services.repository.ts` — `export function updateServiceSettings(db: Database, id: number, patch: ServiceSettingsPatch): void {` — #36 (.squad/plans/edit-service-settings/04-story-36.md)
+- `useSession` in `app/web/src/session/SessionContext.tsx` — `export function useSession(): SessionValue {` — existing code
+- `withdrawRequest` in `app/web/src/api/requests.ts` — `export async function withdrawRequest(id: number): Promise<RequestRecord> {` — #48 (.squad/plans/withdraw/11-story-48.md)
+
+### Problem codes (planned)
+
+- `FORBIDDEN` → HTTP 403 — #30 (.squad/plans/role-guards/02-story-30.md)
+- `INVALID_CREDENTIALS` → HTTP 401 — existing code
+- `INVALID_TRANSITION` → HTTP 409 — #38 (.squad/plans/draft-and-submit/05-story-38.md)
+- `LOAD_LIMIT` → HTTP 409 — #79 (.squad/plans/pick-and-assign/13-story-79.md)
+- `NOT_FOUND` → HTTP 404 — #33 (.squad/plans/public-catalog/03-story-33.md)
+- `RATE_LIMITED` → HTTP 429 — existing code
+- `REQ_DUPLICATE_OPEN` → HTTP 409 — #44 (.squad/plans/duplicate-guard/09-story-44.md)
+- `REQ_INCOMPLETE` → HTTP 422 — #41 (.squad/plans/declare-documents/07-story-41.md)
+- `UNAUTHENTICATED` → HTTP 401 — existing code
+- `VALIDATION_ERROR` → HTTP 400 — existing code
+
+### Routes (planned)
+
+- `GET /` — #33 (.squad/plans/public-catalog/03-story-33.md)
+- `GET /:code` — #33 (.squad/plans/public-catalog/03-story-33.md)
+- `GET /:id` — #38 (.squad/plans/draft-and-submit/05-story-38.md)
+- `GET /api/v1/_probe/applicant` — #30 (.squad/plans/role-guards/02-story-30.md)
+- `GET /api/v1/_probe/reviewer` — #30 (.squad/plans/role-guards/02-story-30.md)
+- `GET /api/v1/_probe/staff` — #30 (.squad/plans/role-guards/02-story-30.md)
+- `GET /api/v1/_probe/supervisor` — #30 (.squad/plans/role-guards/02-story-30.md)
+- `GET /me` — #30 (.squad/plans/role-guards/02-story-30.md)
+- `GET /mine` — #46 (.squad/plans/my-requests-and-timeline/10-story-46.md)
+- `GET /queue` — #51 (.squad/plans/department-queue/12-story-51.md)
+- `GET /reviewers` — #79 (.squad/plans/pick-and-assign/13-story-79.md)
+- `PATCH /:id` — #36 (.squad/plans/edit-service-settings/04-story-36.md)
+- `POST /` — #38 (.squad/plans/draft-and-submit/05-story-38.md)
+- `POST /:id/assign` — #79 (.squad/plans/pick-and-assign/13-story-79.md)
+- `POST /:id/pick` — #79 (.squad/plans/pick-and-assign/13-story-79.md)
+- `POST /:id/submit` — #38 (.squad/plans/draft-and-submit/05-story-38.md)
+- `POST /:id/withdraw` — #48 (.squad/plans/withdraw/11-story-48.md)
+- `PUT /:id/documents` — #41 (.squad/plans/declare-documents/07-story-41.md)
+- `USE /api/v1/...` — #41 (.squad/plans/declare-documents/07-story-41.md)
+- `USE /api/v1/accounts` — #79 (.squad/plans/pick-and-assign/13-story-79.md)
+- `USE /api/v1/dashboard` — #92 (.squad/plans/supervisor-dashboard/18-story-92.md)
+- `USE /api/v1/requests` — #38 (.squad/plans/draft-and-submit/05-story-38.md)
+- `USE /api/v1/services` — #33 (.squad/plans/public-catalog/03-story-33.md)
+
+### Files created by earlier plans
+
+Edit these with **File:**; never **Create file:** them again.
+
+- `.squad/plans/draft-and-submit/00-overview.md` — #38 (.squad/plans/draft-and-submit/05-story-38.md)
+- `.squad/plans/duplicate-guard/00-overview.md` — #44 (.squad/plans/duplicate-guard/09-story-44.md)
+- `.squad/plans/edit-service-settings/00-overview.md` — #36 (.squad/plans/edit-service-settings/04-story-36.md)
+- `.squad/plans/public-catalog/00-overview.md` — #33 (.squad/plans/public-catalog/03-story-33.md)
+- `app/api/modules/accounts/accounts.routes.ts` — #79 (.squad/plans/pick-and-assign/13-story-79.md)
+- `app/api/modules/accounts/require-role.ts` — #30 (.squad/plans/role-guards/02-story-30.md)
+- `app/api/modules/catalog/services.repository.ts` — #33 (.squad/plans/public-catalog/03-story-33.md)
+- `app/api/modules/catalog/services.routes.ts` — #33 (.squad/plans/public-catalog/03-story-33.md)
+- `app/api/modules/dashboard/dashboard.repository.test.ts` — #92 (.squad/plans/supervisor-dashboard/18-story-92.md)
+- `app/api/modules/dashboard/dashboard.repository.ts` — #92 (.squad/plans/supervisor-dashboard/18-story-92.md)
+- `app/api/modules/dashboard/dashboard.routes.test.ts` — #92 (.squad/plans/supervisor-dashboard/18-story-92.md)
+- `app/api/modules/dashboard/dashboard.routes.ts` — #92 (.squad/plans/supervisor-dashboard/18-story-92.md)
+- `app/api/modules/requests/certificate-sequence.repository.ts` — #83 (.squad/plans/approve-and-reject/15-story-83.md)
+- `app/api/modules/requests/comments.repository.ts` — #85 (.squad/plans/comments/16-story-85.md)
+- `app/api/modules/requests/declared-documents.repository.ts` — #41 (.squad/plans/declare-documents/07-story-41.md)
+- `app/api/modules/requests/reference-sequence.repository.test.ts` — #42 (.squad/plans/reference-number/08-story-42.md)
+- `app/api/modules/requests/reference-sequence.repository.ts` — #42 (.squad/plans/reference-number/08-story-42.md)
+- `app/api/modules/requests/requests.repository.ts` — #38 (.squad/plans/draft-and-submit/05-story-38.md)
+- `app/api/modules/requests/requests.routes.ts` — #38 (.squad/plans/draft-and-submit/05-story-38.md)
+- `app/api/rules/assignment.ts` — #79 (.squad/plans/pick-and-assign/13-story-79.md)
+- `app/api/rules/certificate-number.ts` — #83 (.squad/plans/approve-and-reject/15-story-83.md)
+- `app/api/rules/comments.ts` — #85 (.squad/plans/comments/16-story-85.md)
+- `app/api/rules/data-scope.ts` — #30 (.squad/plans/role-guards/02-story-30.md)
+- `app/api/rules/decision.ts` — #83 (.squad/plans/approve-and-reject/15-story-83.md)
+- `app/api/rules/declared-documents.ts` — #41 (.squad/plans/declare-documents/07-story-41.md)
+- `app/api/rules/due-date.test.ts` — #88 (.squad/plans/due-date-calculator/06-story-88.md)
+- `app/api/rules/due-date.ts` — #88 (.squad/plans/due-date-calculator/06-story-88.md)
+- `app/api/rules/duplicate-guard.ts` — #44 (.squad/plans/duplicate-guard/09-story-44.md)
+- `app/api/rules/info-request.ts` — #81 (.squad/plans/request-info-and-respond/14-story-81.md)
+- `app/api/rules/reference-number.test.ts` — #42 (.squad/plans/reference-number/08-story-42.md)
+- `app/api/rules/reference-number.ts` — #42 (.squad/plans/reference-number/08-story-42.md)
+- `app/api/rules/request-transitions.ts` — #38 (.squad/plans/draft-and-submit/05-story-38.md)
+- `app/api/rules/service-settings.ts` — #36 (.squad/plans/edit-service-settings/04-story-36.md)
+- `app/api/rules/sla-status.test.ts` — #90 (.squad/plans/sla-status-and-queue-sort/17-story-90.md)
+- `app/api/rules/sla-status.ts` — #90 (.squad/plans/sla-status-and-queue-sort/17-story-90.md)
+- `app/db/migrations/002_catalog.sql` — #33 (.squad/plans/public-catalog/03-story-33.md)
+- `app/db/migrations/003_requests.sql` — #38 (.squad/plans/draft-and-submit/05-story-38.md)
+- `app/db/migrations/004_declared_documents.sql` — #41 (.squad/plans/declare-documents/07-story-41.md)
+- `app/db/migrations/005_reference_sequences.sql` — #42 (.squad/plans/reference-number/08-story-42.md)
+- `app/db/migrations/006_certificates.sql` — #83 (.squad/plans/approve-and-reject/15-story-83.md)
+- `app/db/migrations/007_comments.sql` — #85 (.squad/plans/comments/16-story-85.md)
+- `app/db/seed/services.json` — #33 (.squad/plans/public-catalog/03-story-33.md)
+- `app/web/src/api/accounts.ts` — #79 (.squad/plans/pick-and-assign/13-story-79.md)
+- `app/web/src/api/catalog.ts` — #33 (.squad/plans/public-catalog/03-story-33.md)
+- `app/web/src/api/dashboard.test.ts` — #92 (.squad/plans/supervisor-dashboard/18-story-92.md)
+- `app/web/src/api/dashboard.ts` — #92 (.squad/plans/supervisor-dashboard/18-story-92.md)
+- `app/web/src/api/requests.ts` — #38 (.squad/plans/draft-and-submit/05-story-38.md)
+- `app/web/src/components/SlaBadge.test.tsx` — #90 (.squad/plans/sla-status-and-queue-sort/17-story-90.md)
+- `app/web/src/components/SlaBadge.tsx` — #90 (.squad/plans/sla-status-and-queue-sort/17-story-90.md)
+- `app/web/src/pages/CatalogDetailPage.tsx` — #33 (.squad/plans/public-catalog/03-story-33.md)
+- `app/web/src/pages/CatalogPage.tsx` — #33 (.squad/plans/public-catalog/03-story-33.md)
+- `app/web/src/pages/DepartmentQueuePage.tsx` — #51 (.squad/plans/department-queue/12-story-51.md)
+- `app/web/src/pages/DraftEditorPage.tsx` — #38 (.squad/plans/draft-and-submit/05-story-38.md)
+- `app/web/src/pages/MyRequestsPage.tsx` — #46 (.squad/plans/my-requests-and-timeline/10-story-46.md)
+- `app/web/src/pages/RequestDetailPage.tsx` — #46 (.squad/plans/my-requests-and-timeline/10-story-46.md)
+- `app/web/src/pages/SupervisorDashboardPage.test.tsx` — #92 (.squad/plans/supervisor-dashboard/18-story-92.md)
+- `app/web/src/pages/SupervisorDashboardPage.tsx` — #92 (.squad/plans/supervisor-dashboard/18-story-92.md)
+- `app/web/src/pages/SupervisorServicesPage.tsx` — #36 (.squad/plans/edit-service-settings/04-story-36.md)
+- `app/web/src/session/RequireRole.tsx` — #30 (.squad/plans/role-guards/02-story-30.md)
+
+### Conventions
+
+- Business-rule pure functions live in `app/api/rules/` (AGENTS.md), never under `app/api/modules/`.
+- Open product questions stay open: cite the PQ id from `.squad/plans/00-open-questions.md`; do not answer them.
+
+<!-- planning-context:end -->
+
+## Out of scope
+
+- Anything beyond F-19.
+- Registration and password reset (simplicity rule).
+- Email, SMS, push, background queues (simplicity rules).

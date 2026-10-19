@@ -1,0 +1,213 @@
+# Public catalog
+
+## Feature
+
+- **Feature name (display):** Public catalog
+- **Feature slug (folder under `plans/`):** `public-catalog`
+- **PRD reference:** F-03 (Epic E-02 Service catalog) — `Khidma-PRD-Lite.pdf` v2.0-lite
+
+## Tracker (metadata only)
+
+- **Tracker type:** `azure`
+- **Work item id:** `33`
+- **Work item type:** `User Story`
+- **Status:** `New`
+- **Assignee:** —
+- **Labels:** `Baseline-Verify; E-02; F-03; Khidma`
+- **Possible duplicate:** `#59` has the same title and tags. This intake uses `#33` pending **PQ-01**.
+- **Source:** ids from the Azure DevOps query export `queries.csv` (2026-10-18); description and acceptance criteria from the import file `Khidma_Azure_Import_AGILE.csv`. squad-kit tracker auto-fetch failed (Azure returned a sign-in page).
+- **Parent (import file hierarchy, live link not verified):** Feature "Public catalog" → Epic "Service catalog".
+
+---
+
+## Title
+
+```
+Public catalog
+```
+
+---
+
+## Description
+
+```
+As a visitor, I want to browse active services and their requirements so that I can choose the right service before applying.
+
+Open questions to resolve: Public detail behavior for inactive service is not specified.
+Scope note: Baseline feature from the PRD; verify existing behavior and avoid reimplementation unless a gap is confirmed.
+```
+
+## Acceptance Criteria
+
+```
+Given active seeded services, when I open the catalog or service detail, then I see service name/code, SLA, and required documents; inactive services are not listed publicly.
+```
+
+> **Source:** verbatim from `Khidma_Azure_Import_AGILE.csv` (the file the Azure work items were imported from), User Story row "Public catalog" under Feature "Public catalog" / Epic "Service catalog" (tags `Khidma; E-02; F-03; Baseline-Verify`). Not yet re-checked against the live Azure item. The tracker's "Open questions to resolve" line is consolidated in `.squad/plans/00-open-questions.md`; it is **not** answered here.
+
+---
+
+## PRD requirements (quoted from `Khidma-PRD-Lite.pdf`)
+
+- **F-03 (§05 backlog):** F-03 Public catalog — "List and detail of active services with SLA and required documents." Rule: —. Marker: BASELINE.
+- **API surface (§06, base `/api/v1`):** `GET /services[/:code] — Catalog — F-03`
+- §00 services_in_scope: "SHOP-LIC Shop licence renewal 5 wd no · SIGN-PMT Signboard permit 3 wd no · EVENT-PMT Public event permit 7 wd yes" — "wd = working days, Sunday–Thursday (BR-11). Services are seeded data."
+- §01: "ServiceType BASE id, code, name, departmentId, slaDays, allowMultiple, isActive — Seeded: 3 services." · "RequiredDocument BASE id, serviceTypeId, typeCode, label, mandatory — e.g. LEASE_CONTRACT, CR_NUMBER."
+- §06 seed: "2 departments (Licensing · Events) · 3 services · …"
+- **Golden rule (§00):** "Where this document is silent, write an open question — never let the agent decide product behaviour."
+
+---
+
+## Reused approved decisions (Story #28)
+
+- **D-1** stack (TypeScript, Express, React + Vite, SQLite, SQL migrations, Vitest, npm) and **D-12** layout (`app/api`, `app/web`, `app/db`).
+- **D-5** `400 VALIDATION_ERROR` for malformed input; problem+json with a stable code for every error.
+- **Q-16** `401 UNAUTHENTICATED` "Not signed in." for every endpoint that needs a session; session cookie per **D-3**.
+- **D-6** `nationalId` is never part of auth responses; **D-7** all data fictional.
+- PRD engineering rules: migrations only, BR logic in `api/rules` as pure functions, injected Clock, ≥ 1 test per BR, suite < 1 minute.
+
+## Open questions
+
+Consolidated in `.squad/plans/00-open-questions.md` (one report for the whole backlog). This story is blocked until these are answered:
+
+- **PQ-01** — canonical tracker ids (duplicates #54–#77). *(Status 2026-10-18: answered by product owner — see `00-open-questions.md`.)*
+- **PQ-02** — Baseline-Verify stories implemented from scratch. *(Status 2026-10-18: resolved from evidence — see `00-open-questions.md`.)*
+- **PQ-04** — department owning each service. *(Status 2026-10-18: approved default — see `00-open-questions.md`.)*
+- **PQ-05** — required documents per service. *(Status 2026-10-18: approved default — see `00-open-questions.md`.)*
+- **PQ-07** — effects of deactivating a service / editing slaDays. *(Status 2026-10-18: decided (evidence + approved default) — see `00-open-questions.md`.)*
+- **PQ-09** — HTTP statuses and titles for error codes. *(Status 2026-10-18: approved default — see `00-open-questions.md`.)*
+
+---
+
+## Attachments
+
+None. Source document: `Khidma-PRD-Lite.pdf` at the workspace root (relevant text quoted above).
+
+---
+
+## Dependencies
+
+- **Blocked by / related ids:** #28 (F-01 Login with seeded users).
+- **Depends on code areas or other stories:** builds on the code created by the stories above. Execution order is in `.squad/plans/00-index.md`.
+
+## Technical hints (optional)
+
+- Repo root for application code: `app/`. Primary language: typescript.
+
+<!-- planning-context:start (generated by .squad/tools/planning_context.py — do not edit by hand) -->
+
+## Planning context from earlier plans
+
+Generated from the committed code in `app/` and from every plan that runs **before** this story. These contracts are already decided. **Reuse them exactly** (same file paths, function names and signatures, table and column names, problem codes, routes). Do not rename or re-create them.
+
+### Dependency plans
+
+- #28 is implemented. Its plan exceeds the 32 KB read cap; read its code instead: `app/api/app.ts`, `app/api/core/problem.ts`, `app/api/modules/accounts/auth.service.ts`, `app/api/modules/accounts/users.repository.ts`, `app/api/test/helpers.ts`, `app/web/src/App.tsx`, `app/web/src/session/SessionContext.tsx`.
+
+Read a dependency plan with `read_file` only when a detail you need is not summarised below.
+
+### Migrations
+
+- **Next free migration number: `002`.** Use it for the first migration this story creates; never reuse a number below.
+
+- `001_accounts.sql` — existing code
+
+### Tables (name: columns — owner)
+
+- `departments`: id, name, maxActivePerReviewer — existing code
+- `schema_migrations`: name, appliedAt — existing code
+- `users`: id, nationalId, name, email, role, departmentId, passwordHash — existing code
+
+### Exported helpers and types (planned)
+
+- `ApiProblem` in `app/web/src/api/auth.ts` — `export class ApiProblem extends Error {` — existing code
+- `App` in `app/web/src/App.tsx` — `export function App() {` — existing code
+- `AppConfig` in `app/api/core/config.ts` — `export interface AppConfig { port: number; jwtSecret: string; databasePath: string }` — existing code
+- `AppDeps` in `app/api/app.ts` — `export interface AppDeps { db: Database; clock: Clock; jwtSecret: string; limiter?: LoginRateLimiter }` — existing code
+- `AuthDeps` in `app/api/modules/accounts/auth.service.ts` — `export interface AuthDeps { db: Database; clock: Clock; jwtSecret: string }` — existing code
+- `Clock` in `app/api/core/clock.ts` — `export interface Clock { now(): Date }` — existing code
+- `Database` in `app/api/core/db/connection.ts` — `export type Database = BetterSqlite3.Database;` — existing code
+- `LoginPage` in `app/web/src/pages/LoginPage.tsx` — `export function LoginPage() {` — existing code
+- `LoginRateLimiter` in `app/api/modules/accounts/login-rate-limiter.ts` — `export interface LoginRateLimiter {` — existing code
+- `MIGRATIONS_DIR` in `app/api/core/db/migrate.ts` — `export const MIGRATIONS_DIR = fileURLToPath(new URL('../../../db/migrations/', import.meta.url));` — existing code
+- `PROBLEM_TITLES` in `app/api/core/problem.ts` — `export const PROBLEM_TITLES: Record<ProblemCode, string> = {` — existing code
+- `PlaceholderArea` in `app/web/src/pages/PlaceholderArea.tsx` — `export function PlaceholderArea({ heading }: { heading: string }) {` — existing code
+- `ProblemCode` in `app/api/core/problem.ts` — `export type ProblemCode = 'INVALID_CREDENTIALS' | 'VALIDATION_ERROR' | 'RATE_LIMITED' | 'UNAUTHENTICATED'; // UNAUTHENTICATED: Q-16` — existing code
+- `ProblemError` in `app/api/core/problem.ts` — `export class ProblemError extends Error {` — existing code
+- `PublicUser` in `app/api/modules/accounts/users.repository.ts` — `export interface PublicUser { id: number; name: string; email: string; role: Role; departmentId: number | null }` — existing code
+- `RequireRole` in `app/web/src/session/RequireRole.tsx` — `export function RequireRole({ roles, children }: { roles: Role[]; children: ReactNode }) {` — #30 (.squad/plans/role-guards/02-story-30.md)
+- `Role` in `app/api/modules/accounts/users.repository.ts` — `export type Role = 'APPLICANT' | 'REVIEWER' | 'SUPERVISOR';` — existing code
+- `SEED_FILE` in `app/api/core/db/seed.ts` — `export const SEED_FILE = fileURLToPath(new URL('../../../db/seed/accounts.json', import.meta.url));` — existing code
+- `SEED_PASSWORD` in `app/api/core/db/seed.ts` — `export const SEED_PASSWORD = 'Passw0rd!'; // PRD §06 seed data` — existing code
+- `SESSION_COOKIE` in `app/api/modules/accounts/auth.service.ts` — `export const SESSION_COOKIE = 'khidma_session';` — existing code
+- `SESSION_TTL_SECONDS` in `app/api/modules/accounts/auth.service.ts` — `export const SESSION_TTL_SECONDS = 3600;` — existing code
+- `SessionProvider` in `app/web/src/session/SessionContext.tsx` — `export function SessionProvider({ children }: { children: ReactNode }) {` — existing code
+- `SessionUser` in `app/web/src/api/auth.ts` — `export interface SessionUser { id: number; name: string; email: string; role: Role; departmentId: number | null }` — existing code
+- `TEST_SECRET` in `app/api/test/helpers.ts` — `export const TEST_SECRET = 'test-secret';` — existing code
+- `USERS` in `app/web/src/test/fetchStub.ts` — `export const USERS: Record<string, SessionUser> = {` — existing code
+- `UserWithHash` in `app/api/modules/accounts/users.repository.ts` — `export interface UserWithHash extends PublicUser { passwordHash: string }` — existing code
+- `assertDepartmentScope` in `app/api/rules/data-scope.ts` — `export function assertDepartmentScope(user: PublicUser, recordDepartmentId: number): void {` — #30 (.squad/plans/role-guards/02-story-30.md)
+- `assertOwnsRecord` in `app/api/rules/data-scope.ts` — `export function assertOwnsRecord(user: PublicUser, ownerUserId: number): void {` — #30 (.squad/plans/role-guards/02-story-30.md)
+- `authRouter` in `app/api/modules/accounts/auth.routes.ts` — `export function authRouter(deps: AuthDeps & { limiter: LoginRateLimiter }): Router {` — existing code
+- `authenticate` in `app/api/modules/accounts/auth.service.ts` — `export async function authenticate(deps: AuthDeps, email: string, password: string): Promise<{ user: PublicUser; token: string }> {` — existing code
+- `createApp` in `app/api/app.ts` — `export function createApp(deps: AppDeps): Express {` — existing code
+- `createLoginRateLimiter` in `app/api/modules/accounts/login-rate-limiter.ts` — `export function createLoginRateLimiter(` — existing code
+- `fakeClock` in `app/api/test/helpers.ts` — `export function fakeClock(start: Date): Clock & { advance(ms: number): void } {` — existing code
+- `fetchMe` in `app/web/src/api/auth.ts` — `export async function fetchMe(): Promise<SessionUser | null> {` — existing code
+- `findPublicUserById` in `app/api/modules/accounts/users.repository.ts` — `export function findPublicUserById(db: Database, id: number): PublicUser | undefined {` — existing code
+- `findUserByEmail` in `app/api/modules/accounts/users.repository.ts` — `export function findUserByEmail(db: Database, normalizedEmail: string): UserWithHash | undefined {` — existing code
+- `json` in `app/web/src/test/fetchStub.ts` — `export function json(status: number, body?: unknown): Response {` — existing code
+- `loadConfig` in `app/api/core/config.ts` — `export function loadConfig(env: NodeJS.ProcessEnv): AppConfig {` — existing code
+- `login` in `app/web/src/api/auth.ts` — `export async function login(email: string, password: string): Promise<SessionUser> {` — existing code
+- `logout` in `app/web/src/api/auth.ts` — `export async function logout(): Promise<void> {` — existing code
+- `normalizeEmail` in `app/api/modules/accounts/email.ts` — `export function normalizeEmail(raw: string): string { return raw.trim().toLowerCase(); }` — existing code
+- `openDatabase` in `app/api/core/db/connection.ts` — `export function openDatabase(path: string): Database {` — existing code
+- `problem` in `app/web/src/test/fetchStub.ts` — `export const problem = (status: number, code: string, title: string) =>` — existing code
+- `problemMiddleware` in `app/api/core/problem.ts` — `export function problemMiddleware(): ErrorRequestHandler {` — existing code
+- `requireRole` in `app/api/modules/accounts/require-role.ts` — `export function requireRole(deps: AuthDeps, roles: readonly Role[]): RequestHandler {` — #30 (.squad/plans/role-guards/02-story-30.md)
+- `resolveSession` in `app/api/modules/accounts/auth.service.ts` — `export function resolveSession(deps: AuthDeps, token: string | undefined): PublicUser {` — existing code
+- `roleHome` in `app/web/src/session/roleHome.ts` — `export function roleHome(role: Role): string {` — existing code
+- `runMigrations` in `app/api/core/db/migrate.ts` — `export function runMigrations(db: Database, migrationsDir: string, clock: Clock): string[] {` — existing code
+- `seedAccounts` in `app/api/core/db/seed.ts` — `export async function seedAccounts(db: Database, seedFile: string): Promise<{ departments: number; users: number }> {` — existing code
+- `seededDb` in `app/api/test/helpers.ts` — `export async function seededDb(): Promise<Database> {` — existing code
+- `stubFetch` in `app/web/src/test/fetchStub.ts` — `export function stubFetch(handlers: Record<string, Handler> = {}) {` — existing code
+- `systemClock` in `app/api/core/clock.ts` — `export const systemClock: Clock = { now: () => new Date() };` — existing code
+- `useSession` in `app/web/src/session/SessionContext.tsx` — `export function useSession(): SessionValue {` — existing code
+
+### Problem codes (planned)
+
+- `FORBIDDEN` → HTTP 403 — #30 (.squad/plans/role-guards/02-story-30.md)
+- `INVALID_CREDENTIALS` → HTTP 401 — existing code
+- `RATE_LIMITED` → HTTP 429 — existing code
+- `UNAUTHENTICATED` → HTTP 401 — existing code
+- `VALIDATION_ERROR` → HTTP 400 — existing code
+
+### Routes (planned)
+
+- `GET /api/v1/_probe/applicant` — #30 (.squad/plans/role-guards/02-story-30.md)
+- `GET /api/v1/_probe/reviewer` — #30 (.squad/plans/role-guards/02-story-30.md)
+- `GET /api/v1/_probe/staff` — #30 (.squad/plans/role-guards/02-story-30.md)
+- `GET /api/v1/_probe/supervisor` — #30 (.squad/plans/role-guards/02-story-30.md)
+- `GET /me` — #30 (.squad/plans/role-guards/02-story-30.md)
+
+### Files created by earlier plans
+
+Edit these with **File:**; never **Create file:** them again.
+
+- `app/api/modules/accounts/require-role.ts` — #30 (.squad/plans/role-guards/02-story-30.md)
+- `app/api/rules/data-scope.ts` — #30 (.squad/plans/role-guards/02-story-30.md)
+- `app/web/src/session/RequireRole.tsx` — #30 (.squad/plans/role-guards/02-story-30.md)
+
+### Conventions
+
+- Business-rule pure functions live in `app/api/rules/` (AGENTS.md), never under `app/api/modules/`.
+- Open product questions stay open: cite the PQ id from `.squad/plans/00-open-questions.md`; do not answer them.
+
+<!-- planning-context:end -->
+
+## Out of scope
+
+- Anything beyond F-03.
+- Registration and password reset (simplicity rule).
+- Editing services (F-04).
+- Request seed data (PQ-03).

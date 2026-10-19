@@ -1,0 +1,32 @@
+version: 1
+project:
+  name: Khidma
+  primaryLanguage: typescript
+  projectRoots:
+    - .
+tracker:
+  type: azure
+  workspace: Alaa-Work
+  project: Khidma
+naming:
+  includeTrackerId: true
+  globalSequence: true
+agents: []
+planner:
+  enabled: true
+  provider: anthropic
+  mode: auto
+  budget:
+    maxFileReads: 40
+    maxContextBytes: 80000
+    maxDurationSeconds: 300
+  tools:
+    rangedRead: false
+  stages:
+    scout:
+      enabled: false
+  cache:
+    enabled: true
+  maxOutputTokens: 16384
+  auth:
+    anthropic: subscription

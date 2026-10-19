@@ -1,0 +1,6 @@
+# Never commit credentials or local planner state.
+secrets.yaml
+secrets.*
+runs/
+.trash/
+.last-*
