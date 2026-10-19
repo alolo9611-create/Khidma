@@ -1,14 +1,9 @@
 export type Role = 'APPLICANT' | 'REVIEWER' | 'SUPERVISOR';
 export interface SessionUser { id: number; name: string; email: string; role: Role; departmentId: number | null }
 
-export class ApiProblem extends Error {
-  constructor(readonly status: number, readonly code: string, title: string) { super(title); }
-}
+import { ApiProblem, toProblem } from './http';
 
-async function toProblem(res: Response): Promise<ApiProblem> {
-  const body = await res.json().catch(() => ({}));
-  return new ApiProblem(res.status, body.code ?? 'UNKNOWN', body.title ?? res.statusText);
-}
+export { ApiProblem };
 
 // The HttpOnly cookie plus /me is the only session persistence (D-3): nothing goes to web storage.
 export async function login(email: string, password: string): Promise<SessionUser> {

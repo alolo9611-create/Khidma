@@ -36,9 +36,9 @@ afterEach(() => {
 
 describe('LoginPage', () => {
   it.each([
-    ['faisal', 'Applicant area'],
-    ['noura', 'Staff review area'],
-    ['khalid', 'Staff supervisor area'],
+    ['faisal', 'My requests'],
+    ['noura', 'Licensing queue'],
+    ['khalid', 'Licensing dashboard'],
   ])('signs %s in and lands on %s', async (key, heading) => {
     const fetchMock = stubFetch({ '/api/v1/auth/login': () => json(200, USERS[key]) });
     renderLogin();
@@ -71,8 +71,15 @@ describe('LoginPage', () => {
     stubFetch({ '/api/v1/auth/login': () => json(200, USERS.noura) });
     renderLogin();
     await signIn(USERS.noura.email);
-    await screen.findByRole('heading', { name: 'Staff review area' });
+    await screen.findByRole('heading', { name: 'Licensing queue' });
     expect(setItem).not.toHaveBeenCalled();
+  });
+
+  it('redirects a signed-in user away from /login to their area (PQ-08)', async () => {
+    stubFetch({ '/api/v1/auth/me': () => json(200, USERS.faisal) });
+    renderLogin();
+    expect(await screen.findByRole('heading', { name: 'My requests' })).toBeTruthy();
+    expect(screen.getByTestId('path').textContent).toBe('/applicant');
   });
 
   it('offers no registration, reset or credential hints', async () => {

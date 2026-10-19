@@ -1,39 +1,34 @@
-import { cleanup, render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { cleanup, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { App } from '../App';
 import { json, stubFetch, USERS } from '../test/fetchStub';
-import { SessionProvider } from './SessionContext';
+import { renderAt } from '../test/render';
 
-function renderAt(path: string) {
-  return render(
-    <MemoryRouter initialEntries={[path]}>
-      <SessionProvider>
-        <App />
-      </SessionProvider>
-    </MemoryRouter>,
-  );
-}
-
-afterEach(() => {
-  cleanup();
-  vi.unstubAllGlobals();
-});
+afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 
 describe('SessionProvider', () => {
   it('restores the user from /me on reload', async () => {
     stubFetch({ '/api/v1/auth/me': () => json(200, USERS.noura) });
     renderAt('/staff/review');
     expect(screen.getByText('Loading…')).toBeTruthy();
-    expect(await screen.findByRole('heading', { name: 'Staff review area' })).toBeTruthy();
-    expect(screen.getByText('Signed in as Noura Demo')).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: 'Licensing queue' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Account menu' }).textContent).toContain('Noura');
   });
 
-  it('renders with no user when /me answers 401', async () => {
+  it('sends a signed-out visitor of a protected page to /login (F-02)', async () => {
     stubFetch();
     renderAt('/staff/review');
-    expect(await screen.findByRole('heading', { name: 'Staff review area' })).toBeTruthy();
-    expect(screen.queryByText(/Signed in as/)).toBeNull();
+    expect(await screen.findByRole('heading', { name: 'Sign in to Khidma' })).toBeTruthy();
+    expect(screen.getByTestId('path').textContent).toBe('/login');
+  });
+
+  it('signs the user out when the session expires mid-use (D-3)', async () => {
+    stubFetch({
+      '/api/v1/auth/me': () => json(200, USERS.faisal),
+      '/api/v1/requests/mine': () => json(401, { code: 'UNAUTHENTICATED', title: 'Not signed in.', status: 401 }),
+    });
+    renderAt('/applicant');
+    expect(await screen.findByRole('heading', { name: 'Sign in to Khidma' })).toBeTruthy();
+    expect(screen.getByTestId('path').textContent).toBe('/login');
   });
 
   it('calls /me exactly once per mount', async () => {

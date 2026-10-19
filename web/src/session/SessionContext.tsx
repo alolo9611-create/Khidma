@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { fetchMe, type SessionUser } from '../api/auth';
+import { SESSION_EXPIRED } from '../api/http';
 
 interface SessionValue {
   user: SessionUser | null;
@@ -21,6 +22,12 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       .catch(() => {})
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
+  }, []);
+
+  useEffect(() => {
+    const expired = () => setUser(null); // RequireRole then sends the user to /login
+    window.addEventListener(SESSION_EXPIRED, expired);
+    return () => window.removeEventListener(SESSION_EXPIRED, expired);
   }, []);
 
   if (loading) return <p>Loading…</p>;

@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch --env-file=.env server.ts",
-    "start": "tsx --env-file=.env server.ts",
+    "start": "tsx --env-file-if-exists=.env server.ts",
     "db:migrate": "tsx --env-file=.env scripts/migrate.ts",
     "db:seed": "tsx --env-file=.env scripts/seed.ts",
     "test": "vitest run",

@@ -16,3 +16,16 @@ export function findPublicUserById(db: Database, id: number): PublicUser | undef
     .prepare('SELECT id, name, email, role, departmentId FROM users WHERE id = ?')
     .get(id) as PublicUser | undefined;
 }
+
+export interface ReviewerRow { id: number; name: string; departmentId: number }
+
+export function listDepartmentReviewers(db: Database, departmentId: number): ReviewerRow[] {
+  return db
+    .prepare("SELECT id, name, departmentId FROM users WHERE role = 'REVIEWER' AND departmentId = ? ORDER BY name")
+    .all(departmentId) as ReviewerRow[];
+}
+
+/** Only for BR-16 masking on request detail (PQ-23); never part of auth responses (D-6). */
+export function findNationalId(db: Database, id: number): string | undefined {
+  return (db.prepare('SELECT nationalId FROM users WHERE id = ?').get(id) as { nationalId: string } | undefined)?.nationalId;
+}
