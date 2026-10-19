@@ -1,0 +1,34 @@
+# Render Blueprint — free, disposable team preview of Khidma.
+# One Node web service serves the built SPA and the API from the same origin (cookie + CSRF design, D-3).
+# Free plan: the filesystem is ephemeral, so the SQLite demo database is rebuilt (migrate + seed) on every boot;
+# all data created in the preview is lost on spin-down (15 min idle), restart or redeploy.
+services:
+  - type: web
+    name: khidma-preview
+    runtime: node
+    plan: free
+    branch: feature/khidma-full-app
+    buildCommand: cd web && npm ci --include=dev && npm run build && cd ../api && npm ci --include=dev
+    startCommand: cd api && npm run start:preview
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: STATIC_DIR
+        value: ../web/dist
+      - key: DATABASE_PATH
+        value: ../db/preview.sqlite
+      - key: TIMEZONE
+        value: Asia/Riyadh
+      - key: TRUST_PROXY
+        value: "1"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: PREVIEW_USER
+        value: khidma
+      - key: PREVIEW_PASSWORD
+        generateValue: true

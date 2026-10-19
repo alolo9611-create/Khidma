@@ -6,9 +6,9 @@ import { systemClock } from './core/clock.js';
 import { loadConfig } from './core/config.js';
 import { openDatabase } from './core/db/connection.js';
 
-const { port, jwtSecret, databasePath, timezone, trustProxy, staticDir } = loadConfig(process.env);
+const { port, jwtSecret, databasePath, timezone, trustProxy, staticDir, host, previewGate } = loadConfig(process.env);
 const db = openDatabase(databasePath);
-const app = createApp({ db, clock: systemClock, jwtSecret, timezone });
+const app = createApp({ db, clock: systemClock, jwtSecret, timezone, previewGate });
 
 if (trustProxy) app.set('trust proxy', /^\d+$/.test(trustProxy) ? Number(trustProxy) : trustProxy);
 
@@ -20,6 +20,7 @@ if (staticDir) {
   app.use((req, res, next) => (req.method === 'GET' && !req.path.startsWith('/api/') ? res.sendFile(resolve(dir, 'index.html')) : next()));
 }
 
-app.listen(port, () => {
-  console.log(`Khidma API listening on :${port}${staticDir ? ' (serving the SPA)' : ''}`);
-});
+const onListen = () => {
+  console.log(`Khidma API listening on ${host ?? ''}:${port}${staticDir ? ' (serving the SPA)' : ''}${previewGate ? ' (preview gate on)' : ''}`);
+};
+if (host) app.listen(port, host, onListen); else app.listen(port, onListen);

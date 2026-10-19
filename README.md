@@ -53,7 +53,7 @@ The PRD seed of 20 demo requests is not included (PQ-03: no story owns it). Use 
 
 ## Deploying
 
-There is no deployment target configured yet. The app runs as one Node process that serves the API and the built SPA from the same origin (required by the cookie and CSRF design).
+The app runs as one Node process that serves the API and the built SPA from the same origin (required by the cookie and CSRF design).
 
 ```bash
 (cd web && npm ci && npm run build)          # → web/dist
@@ -62,19 +62,30 @@ There is no deployment target configured yet. The app runs as one Node process t
 (cd api && NODE_ENV=production STATIC_DIR=../web/dist npm start)
 ```
 
-Production environment (`api/.env` or the host's secret store):
-
 | Variable | Required | Notes |
 |----------|----------|-------|
 | `JWT_SECRET` | yes | ≥ 32 random characters; the API refuses the example value in production |
 | `NODE_ENV` | yes | `production` |
-| `DATABASE_PATH` | yes | persistent volume path for the SQLite file |
+| `DATABASE_PATH` | yes | path of the SQLite file |
 | `STATIC_DIR` | yes | path to `web/dist` |
-| `PORT` | no | default 3000 |
+| `PORT` | no | default 3000 (hosts usually inject it) |
+| `HOST` | on hosts | `0.0.0.0` on Render and similar hosts |
 | `TIMEZONE` | no | default `Asia/Riyadh` (PRD §01) |
 | `TRUST_PROXY` | behind a proxy | e.g. `1`, so the per-IP login rate limit sees client IPs |
+| `PREVIEW_PASSWORD` | trial only | turns on the preview-access gate (≥ 16 characters) |
+| `PREVIEW_USER` | trial only | gate user name, default `khidma` |
 
-Serve over HTTPS: the session cookie is `Secure`. Back up the SQLite file before running new migrations.
+Serve over HTTPS: the session cookie is `Secure`.
+
+### Free team preview on Render
+
+`render.yaml` is a Render Blueprint for a **free** web service built from `feature/khidma-full-app`. Render's Free plan needs no payment method.
+
+- **Create it once:** Render Dashboard → **New → Blueprint** → connect this GitHub repository → choose branch `feature/khidma-full-app` → **Apply**. Render generates `JWT_SECRET` and `PREVIEW_PASSWORD`. Their values never appear in Git.
+- **Team access:** every page, file and API call is behind a shared login (HTTP Basic). User `khidma`. The password is shown on the service's **Environment** page in the Render Dashboard; share it with the team privately. After that, sign in to Khidma with a seeded account (see above).
+- **Data is disposable.** Free instances have an ephemeral filesystem and sleep after 15 minutes without traffic. On every start (wake-up, restart, redeploy) the database is rebuilt: migrations run and the six demo accounts and three services are seeded again. **Requests, comments and notifications created in the preview are lost** each time. The first visit after sleeping takes about a minute.
+- **Not private at the network level:** the URL is public; the shared login is the only barrier. An IP allow-list needs a paid Render plan.
+- **Limits:** 750 free instance hours per month per workspace; builds stop (no charge) if the free build minutes run out.
 
 ## Known limitations
 
