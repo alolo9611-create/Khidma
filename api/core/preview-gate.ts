@@ -11,16 +11,21 @@ const same = (a: string, b: string) => {
   return x.length === y.length && timingSafeEqual(x, y);
 };
 
+/** True when an `Authorization` header carries the gate's Basic credentials. Shared with the Vercel proxy (proxy.ts). */
+export function isAuthorized(header: string | null | undefined, gate: PreviewGate): boolean {
+  if (!header?.startsWith('Basic ')) return false;
+  const decoded = Buffer.from(header.slice(6), 'base64').toString('utf8');
+  const i = decoded.indexOf(':');
+  return i >= 0 && same(decoded.slice(0, i), gate.user) && same(decoded.slice(i + 1), gate.password);
+}
+
+export const GATE_CHALLENGE = { header: 'Basic realm="Khidma preview", charset="UTF-8"', body: 'Khidma preview: team access only.' };
+
 export function previewGate(gate: PreviewGate): RequestHandler {
   return (req, res, next) => {
     if (req.path === '/healthz') return next(); // host health check; returns no data
-    const header = req.headers.authorization ?? '';
-    if (header.startsWith('Basic ')) {
-      const decoded = Buffer.from(header.slice(6), 'base64').toString('utf8');
-      const i = decoded.indexOf(':');
-      if (i >= 0 && same(decoded.slice(0, i), gate.user) && same(decoded.slice(i + 1), gate.password)) return next();
-    }
-    res.set('WWW-Authenticate', 'Basic realm="Khidma preview", charset="UTF-8"').set('Cache-Control', 'no-store')
-      .status(401).type('text/plain').send('Khidma preview: team access only.');
+    if (isAuthorized(req.headers.authorization, gate)) return next();
+    res.set('WWW-Authenticate', GATE_CHALLENGE.header).set('Cache-Control', 'no-store')
+      .status(401).type('text/plain').send(GATE_CHALLENGE.body);
   };
 }

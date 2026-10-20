@@ -10,8 +10,8 @@ declare module 'express-serve-static-core' {
 
 /** 401 UNAUTHENTICATED without a valid session (Q-16); 403 FORBIDDEN when the role is not allowed (PQ-08). */
 export function requireRole(deps: AuthDeps, roles: readonly Role[]): RequestHandler {
-  return (req, _res, next) => {
-    const user = resolveSession(deps, req.cookies?.[SESSION_COOKIE]);
+  return async (req, _res, next) => {
+    const user = await resolveSession(deps, req.cookies?.[SESSION_COOKIE]);
     if (roles.length > 0 && !roles.includes(user.role)) return next(problem('FORBIDDEN'));
     req.user = user;
     next();

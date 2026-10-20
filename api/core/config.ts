@@ -1,5 +1,9 @@
 export interface AppConfig {
-  port: number; jwtSecret: string; databasePath: string; timezone: string;
+  port: number; jwtSecret: string; timezone: string;
+  /** Local SQLite file path, or a hosted libSQL/Turso URL (DATABASE_URL) for serverless hosts like Vercel. */
+  databasePath: string;
+  /** Turso auth token; only used with a hosted URL. */
+  databaseAuthToken: string | null;
   /** Express "trust proxy" value, set only behind a known reverse proxy (per-IP login rate limit, D-10). */
   trustProxy: string | null;
   /** Built SPA (web/dist) to serve from the same origin in production. */
@@ -23,7 +27,8 @@ export function loadConfig(env: NodeJS.ProcessEnv): AppConfig {
   return {
     port: Number(env.PORT ?? 3000),
     jwtSecret,
-    databasePath: env.DATABASE_PATH ?? '../db/khidma.sqlite',
+    databasePath: env.DATABASE_URL || env.DATABASE_PATH || '../db/khidma.sqlite',
+    databaseAuthToken: env.DATABASE_AUTH_TOKEN || null,
     // PRD §01: "one timezone everywhere (config, default Asia/Riyadh)".
     timezone: env.TIMEZONE ?? 'Asia/Riyadh',
     trustProxy: env.TRUST_PROXY || null,

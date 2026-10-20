@@ -6,9 +6,9 @@ import { SEED_FILE, seedAccounts } from './seed.js';
 describe('seedAccounts', () => {
   it('seeds 2 departments and 6 users by role', async () => {
     const db = await seededDb();
-    const departments = db.prepare('SELECT name FROM departments ORDER BY id').all();
+    const departments = await db.all('SELECT name FROM departments ORDER BY id');
     expect(departments).toEqual([{ name: 'Licensing' }, { name: 'Events' }]);
-    const roles = db.prepare('SELECT role, COUNT(*) AS n FROM users GROUP BY role ORDER BY role').all();
+    const roles = await db.all('SELECT role, COUNT(*) AS n FROM users GROUP BY role ORDER BY role');
     expect(roles).toEqual([
       { role: 'APPLICANT', n: 2 },
       { role: 'REVIEWER', n: 3 },
@@ -18,7 +18,7 @@ describe('seedAccounts', () => {
 
   it('stores Argon2id hashes, never plaintext, and lowercase emails', async () => {
     const db = await seededDb();
-    const users = db.prepare('SELECT * FROM users').all() as Record<string, unknown>[];
+    const users = await db.all<Record<string, unknown>>('SELECT * FROM users');
     for (const u of users) {
       const hash = u.passwordHash as string;
       expect(hash.startsWith('$argon2id$')).toBe(true);

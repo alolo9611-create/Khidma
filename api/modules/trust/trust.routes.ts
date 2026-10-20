@@ -11,27 +11,28 @@ export function trustRouter(deps: AuthDeps & WorkflowDeps): Router {
   const any = requireRole(deps, []);
 
   // F-19: bell — unread count and list (small lists, no pagination).
-  router.get('/notifications', any, (req, res) => {
+  router.get('/notifications', any, async (req, res) => {
     const user = currentUser(req);
-    const items = deps.db.prepare('SELECT id, message, link, readAt, createdAt FROM notifications WHERE userId = ? ORDER BY createdAt DESC, id DESC')
-      .all(user.id) as { readAt: string | null }[];
+    const items = await deps.db.all<{ readAt: string | null }>(
+      'SELECT id, message, link, readAt, createdAt FROM notifications WHERE userId = ? ORDER BY createdAt DESC, id DESC', user.id);
     res.json({ unread: items.filter((n) => n.readAt === null).length, items });
   });
 
-  router.post('/notifications/:id/read', any, (req, res) => {
+  router.post('/notifications/:id/read', any, async (req, res) => {
     const user = currentUser(req);
-    const n = deps.db.prepare('SELECT id, userId, link, readAt FROM notifications WHERE id = ?').get(Number(req.params.id)) as { id: number; userId: number; link: string; readAt: string | null } | undefined;
+    const n = await deps.db.get<{ id: number; userId: number; link: string; readAt: string | null }>(
+      'SELECT id, userId, link, readAt FROM notifications WHERE id = ?', Number(req.params.id));
     if (!n) throw problem('NOT_FOUND');
     if (n.userId !== user.id) throw problem('FORBIDDEN');
-    if (n.readAt === null) deps.db.prepare('UPDATE notifications SET readAt = ? WHERE id = ?').run(deps.clock.now().toISOString(), n.id);
+    if (n.readAt === null) await deps.db.run('UPDATE notifications SET readAt = ? WHERE id = ?', deps.clock.now().toISOString(), n.id);
     res.json({ id: n.id, link: n.link });
   });
 
   // F-22 / BR-17: public, no auth; service, valid/expired and dates only — no personal data.
-  router.get('/verify/:certificateNo', (req, res) => {
+  router.get('/verify/:certificateNo', async (req, res) => {
     const no = normalizeCertificateNo(String(req.params.certificateNo));
-    const r = deps.db.prepare(`SELECT r.certificateNo, r.decidedAt, s.name AS serviceName FROM requests r JOIN service_types s ON s.id = r.serviceTypeId
-      WHERE r.certificateNo = ? AND r.status = 'APPROVED'`).get(no) as { certificateNo: string; decidedAt: string; serviceName: string } | undefined;
+    const r = await deps.db.get<{ certificateNo: string; decidedAt: string; serviceName: string }>(`SELECT r.certificateNo, r.decidedAt, s.name AS serviceName
+      FROM requests r JOIN service_types s ON s.id = r.serviceTypeId WHERE r.certificateNo = ? AND r.status = 'APPROVED'`, no);
     if (!r) throw problem('NOT_FOUND');
     const validUntil = certificateValidUntil(new Date(r.decidedAt), deps.timezone);
     res.json({

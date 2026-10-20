@@ -59,7 +59,7 @@ describe('authenticate', () => {
 describe('resolveSession', () => {
   it('returns exactly the D-6 fields for a valid token', async () => {
     const { token } = await authenticate(deps(), 'noura@khidma.test', 'Passw0rd!');
-    expect(Object.keys(resolveSession(deps(), token))).toEqual(D6_KEYS);
+    expect(Object.keys(await resolveSession(deps(), token))).toEqual(D6_KEYS);
   });
 
   it('rejects missing, invalid, foreign, expired and orphaned tokens with 401 UNAUTHENTICATED', async () => {

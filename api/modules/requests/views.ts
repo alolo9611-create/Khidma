@@ -56,17 +56,17 @@ export function allowedActions(user: PublicUser, r: RequestRow) {
   };
 }
 
-export function requestDetail(deps: WorkflowDeps, user: PublicUser, id: number) {
-  const r = Number.isInteger(id) ? findRequest(deps.db, id) : undefined;
+export async function requestDetail(deps: WorkflowDeps, user: PublicUser, id: number) {
+  const r = Number.isInteger(id) ? await findRequest(deps.db, id) : undefined;
   if (!r) throw problem('NOT_FOUND');
   assertCanView(user, { applicantId: r.applicantId, departmentId: r.departmentId, status: r.status }); // BR-18, PQ-20
   const isApplicant = user.role === 'APPLICANT';
-  const declared = declaredDocuments(deps.db, r.id);
-  const activity = activityFor(deps.db, r.id);
+  const declared = await declaredDocuments(deps.db, r.id);
+  const activity = await activityFor(deps.db, r.id);
   const timeline = isApplicant ? timelineForApplicant(activity) : activity;
   const lastInfo = [...activity].reverse().find((a) => a.action === 'REQUEST_INFO');
   const rejection = [...activity].reverse().find((a) => a.action === 'REJECT');
-  const comments = commentsFor(deps.db, r.id)
+  const comments = (await commentsFor(deps.db, r.id))
     .filter((c) => !isApplicant || c.visibility === 'PUBLIC')
     .map((c) => ({
       id: c.id, visibility: c.visibility, body: c.body, createdAt: c.createdAt, authorRole: c.authorRole,
@@ -77,8 +77,8 @@ export function requestDetail(deps: WorkflowDeps, user: PublicUser, id: number) 
     service: { id: r.serviceTypeId, code: r.serviceCode, name: r.serviceName, slaDays: r.slaDays, departmentId: r.departmentId },
     fields: FORM_FIELDS[r.serviceCode] ?? [],
     formData: JSON.parse(r.formData),
-    documents: requiredDocuments(deps.db, r.serviceTypeId).map((d) => ({ typeCode: d.typeCode, label: d.label, mandatory: d.mandatory === 1, documentNumber: declared[d.typeCode] ?? null })),
-    applicant: { id: r.applicantId, name: r.applicantName, nationalId: nationalIdFor(findNationalId(deps.db, r.applicantId) ?? '', user.id, { applicantId: r.applicantId, assigneeId: r.assigneeId }) },
+    documents: (await requiredDocuments(deps.db, r.serviceTypeId)).map((d) => ({ typeCode: d.typeCode, label: d.label, mandatory: d.mandatory === 1, documentNumber: declared[d.typeCode] ?? null })),
+    applicant: { id: r.applicantId, name: r.applicantName, nationalId: nationalIdFor((await findNationalId(deps.db, r.applicantId)) ?? '', user.id, { applicantId: r.applicantId, assigneeId: r.assigneeId }) },
     assignee: r.assigneeId === null ? null : isApplicant ? { id: null, name: 'Reviewer' } : { id: r.assigneeId, name: r.assigneeName },
     infoCycles: r.infoCycles, infoMessage: r.status === 'INFO_REQUESTED' ? lastInfo?.note ?? null : null,
     submittedAt: r.submittedAt, dueAt: r.dueAt, decidedAt: r.decidedAt, sla: sla(deps, r), workingDaysLeft: workingDaysLeft(deps, r),
@@ -90,15 +90,15 @@ export function requestDetail(deps: WorkflowDeps, user: PublicUser, id: number) 
   };
 }
 
-export function myRequests(deps: WorkflowDeps, user: PublicUser) {
-  return listByApplicant(deps.db, user.id).map((r) => ({
+export async function myRequests(deps: WorkflowDeps, user: PublicUser) {
+  return (await listByApplicant(deps.db, user.id)).map((r) => ({
     id: r.id, referenceNo: r.referenceNo, status: r.status, service: { code: r.serviceCode, name: r.serviceName },
     submittedAt: r.submittedAt, dueAt: r.dueAt, decidedAt: r.decidedAt, certificateNo: r.certificateNo, sla: sla(deps, r),
   }));
 }
 
 /** F-11 + F-17: department queue, non-DRAFT only, default open statuses (PQ-20), BR-13 sort. */
-export function queue(deps: WorkflowDeps, user: PublicUser, q: { status?: unknown; service?: unknown }) {
+export async function queue(deps: WorkflowDeps, user: PublicUser, q: { status?: unknown; service?: unknown }) {
   let statuses: readonly RequestStatus[] = OPEN_STATUSES;
   if (typeof q.status === 'string' && q.status !== '' && q.status !== 'open') {
     if (q.status === 'all') statuses = ['SUBMITTED', 'IN_REVIEW', 'INFO_REQUESTED', 'APPROVED', 'REJECTED', 'WITHDRAWN'];
@@ -106,7 +106,7 @@ export function queue(deps: WorkflowDeps, user: PublicUser, q: { status?: unknow
     else throw invalid(['status']);
   }
   const service = typeof q.service === 'string' && q.service ? q.service.toUpperCase() : undefined;
-  return listByDepartment(deps.db, user.departmentId!, statuses, service)
+  return (await listByDepartment(deps.db, user.departmentId!, statuses, service))
     .map((r) => ({
       id: r.id, referenceNo: r.referenceNo, status: r.status, service: { code: r.serviceCode, name: r.serviceName },
       applicantName: r.applicantName, assignee: r.assigneeId === null ? null : { id: r.assigneeId, name: r.assigneeName },
@@ -117,26 +117,34 @@ export function queue(deps: WorkflowDeps, user: PublicUser, q: { status?: unknow
 }
 
 /** F-18: four numbers — open, at risk, overdue, active requests per reviewer (BR-12, PQ-13). */
-export function dashboard(deps: WorkflowDeps, user: PublicUser) {
-  const open = listByDepartment(deps.db, user.departmentId!, OPEN_STATUSES);
+export async function dashboard(deps: WorkflowDeps, user: PublicUser) {
+  const open = await listByDepartment(deps.db, user.departmentId!, OPEN_STATUSES);
   const slas = open.map((r) => sla(deps, r));
-  const dept = deps.db.prepare('SELECT id, name, maxActivePerReviewer AS limitPerReviewer FROM departments WHERE id = ?').get(user.departmentId) as { id: number; name: string; limitPerReviewer: number };
+  const dept = (await deps.db.get<{ id: number; name: string; limitPerReviewer: number }>(
+    'SELECT id, name, maxActivePerReviewer AS limitPerReviewer FROM departments WHERE id = ?', user.departmentId))!;
   return {
     department: { id: dept.id, name: dept.name },
     open: open.length,
     atRisk: slas.filter((s) => s === 'AT_RISK').length,
     overdue: slas.filter((s) => s === 'OVERDUE').length,
-    reviewers: reviewersWithLoad(deps, user.departmentId!, dept.limitPerReviewer),
+    reviewers: await reviewersWithLoad(deps, user.departmentId!, dept.limitPerReviewer),
   };
 }
 
-export function reviewersWithLoad(deps: WorkflowDeps, departmentId: number, limit?: number) {
-  const max = limit ?? (deps.db.prepare('SELECT maxActivePerReviewer AS n FROM departments WHERE id = ?').get(departmentId) as { n: number }).n;
-  return listDepartmentReviewers(deps.db, departmentId).map((u) => ({ id: u.id, name: u.name, active: countActiveForReviewer(deps.db, u.id, ACTIVE_STATUSES), limit: max }));
+export async function reviewersWithLoad(deps: WorkflowDeps, departmentId: number, limit?: number) {
+  const max = limit ?? (await departmentLimit(deps, departmentId));
+  const reviewers = await listDepartmentReviewers(deps.db, departmentId);
+  const out = [];
+  for (const u of reviewers) out.push({ id: u.id, name: u.name, active: await countActiveForReviewer(deps.db, u.id, ACTIVE_STATUSES), limit: max });
+  return out;
+}
+
+async function departmentLimit(deps: WorkflowDeps, departmentId: number | null): Promise<number> {
+  return (await deps.db.get<{ n: number }>('SELECT maxActivePerReviewer AS n FROM departments WHERE id = ?', departmentId))!.n;
 }
 
 /** BR-06: the signed-in reviewer's own active load, for the queue meter. */
-export function myLoad(deps: WorkflowDeps, user: PublicUser) {
-  const limit = (deps.db.prepare('SELECT maxActivePerReviewer AS n FROM departments WHERE id = ?').get(user.departmentId) as { n: number }).n;
-  return { active: countActiveForReviewer(deps.db, user.id, ACTIVE_STATUSES), limit };
+export async function myLoad(deps: WorkflowDeps, user: PublicUser) {
+  const limit = await departmentLimit(deps, user.departmentId);
+  return { active: await countActiveForReviewer(deps.db, user.id, ACTIVE_STATUSES), limit };
 }

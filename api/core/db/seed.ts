@@ -17,22 +17,20 @@ export async function seedAccounts(db: Database, seedFile: string): Promise<{ de
   const data = JSON.parse(readFileSync(seedFile, 'utf8')) as SeedFile;
   const hashes = await Promise.all(data.users.map(() => argon2.hash(SEED_PASSWORD, { type: argon2.argon2id })));
 
-  const insertDepartment = db.prepare(
-    'INSERT OR IGNORE INTO departments (id, name, maxActivePerReviewer) VALUES (?, ?, ?)',
-  );
-  const insertUser = db.prepare(
-    `INSERT OR IGNORE INTO users (id, nationalId, name, email, role, departmentId, passwordHash)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
-  );
-  db.transaction(() => {
-    for (const d of data.departments) insertDepartment.run(d.id, d.name, d.maxActivePerReviewer);
-    data.users.forEach((u, i) => {
-      insertUser.run(u.id, u.nationalId, u.name, normalizeEmail(u.email), u.role, u.departmentId, hashes[i]);
-    });
-  })();
+  await db.transaction(async () => {
+    for (const d of data.departments) {
+      await db.run('INSERT OR IGNORE INTO departments (id, name, maxActivePerReviewer) VALUES (?, ?, ?)', d.id, d.name, d.maxActivePerReviewer);
+    }
+    for (const [i, u] of data.users.entries()) {
+      await db.run(
+        `INSERT OR IGNORE INTO users (id, nationalId, name, email, role, departmentId, passwordHash)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        u.id, u.nationalId, u.name, normalizeEmail(u.email), u.role, u.departmentId, hashes[i],
+      );
+    }
+  });
 
-  const count = (table: string) => (db.prepare(`SELECT COUNT(*) AS n FROM ${table}`).get() as { n: number }).n;
-  return { departments: count('departments'), users: count('users') };
+  return { departments: await count(db, 'departments'), users: await count(db, 'users') };
 }
 
 interface CatalogSeed {
@@ -41,21 +39,26 @@ interface CatalogSeed {
 }
 
 // PQ-04 / PQ-05 (approved defaults, 2026-10-18). Fictional data. Re-running changes nothing.
-export function seedCatalog(db: Database, seedFile: string): { services: number; documents: number } {
+export async function seedCatalog(db: Database, seedFile: string): Promise<{ services: number; documents: number }> {
   const data = JSON.parse(readFileSync(seedFile, 'utf8')) as CatalogSeed;
-  const insertService = db.prepare(
-    `INSERT OR IGNORE INTO service_types (id, code, name, departmentId, slaDays, allowMultiple, isActive)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
-  );
-  const insertDoc = db.prepare(
-    'INSERT OR IGNORE INTO required_documents (id, serviceTypeId, typeCode, label, mandatory) VALUES (?, ?, ?, ?, ?)',
-  );
-  db.transaction(() => {
+  await db.transaction(async () => {
     for (const s of data.services) {
-      insertService.run(s.id, s.code, s.name, s.departmentId, s.slaDays, s.allowMultiple ? 1 : 0, s.isActive ? 1 : 0);
+      await db.run(
+        `INSERT OR IGNORE INTO service_types (id, code, name, departmentId, slaDays, allowMultiple, isActive)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        s.id, s.code, s.name, s.departmentId, s.slaDays, s.allowMultiple ? 1 : 0, s.isActive ? 1 : 0,
+      );
     }
-    for (const d of data.documents) insertDoc.run(d.id, d.serviceTypeId, d.typeCode, d.label, d.mandatory ? 1 : 0);
-  })();
-  const count = (table: string) => (db.prepare(`SELECT COUNT(*) AS n FROM ${table}`).get() as { n: number }).n;
-  return { services: count('service_types'), documents: count('required_documents') };
+    for (const d of data.documents) {
+      await db.run(
+        'INSERT OR IGNORE INTO required_documents (id, serviceTypeId, typeCode, label, mandatory) VALUES (?, ?, ?, ?, ?)',
+        d.id, d.serviceTypeId, d.typeCode, d.label, d.mandatory ? 1 : 0,
+      );
+    }
+  });
+  return { services: await count(db, 'service_types'), documents: await count(db, 'required_documents') };
+}
+
+async function count(db: Database, table: string): Promise<number> {
+  return (await db.get<{ n: number }>(`SELECT COUNT(*) AS n FROM ${table}`))!.n;
 }

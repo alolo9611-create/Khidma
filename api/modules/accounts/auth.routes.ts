@@ -35,8 +35,8 @@ export function authRouter(deps: AuthDeps & { limiter: LoginRateLimiter }): Rout
     res.status(204).end();
   });
 
-  router.get('/me', (req, res) => {
-    res.status(200).json(resolveSession(deps, req.cookies?.[SESSION_COOKIE]));
+  router.get('/me', async (req, res) => {
+    res.status(200).json(await resolveSession(deps, req.cookies?.[SESSION_COOKIE]));
   });
 
   return router;

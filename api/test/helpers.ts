@@ -12,15 +12,15 @@ export function fakeClock(start: Date): Clock & { advance(ms: number): void } {
 
 export async function seededDb(): Promise<Database> {
   const db = openDatabase(':memory:');
-  runMigrations(db, MIGRATIONS_DIR, fakeClock(new Date('2026-01-01T00:00:00Z')));
+  await runMigrations(db, MIGRATIONS_DIR, fakeClock(new Date('2026-01-01T00:00:00Z')));
   await seedAccounts(db, SEED_FILE);
-  seedCatalog(db, CATALOG_SEED_FILE);
+  await seedCatalog(db, CATALOG_SEED_FILE);
   return db;
 }
 
 import jwt from 'jsonwebtoken';
 import request from 'supertest';
-import { createApp } from '../app.js';
+import { createApp } from '../create-app.js';
 
 /** Session cookie without Argon2 (keeps the suite under a minute). The user must exist. */
 export function sessionCookie(userId: number, role: string, clock: Clock): string {

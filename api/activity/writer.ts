@@ -11,8 +11,9 @@ export interface ActivityEntry {
   at: string;
 }
 
-export function appendActivity(db: Database, e: ActivityEntry): void {
-  db.prepare(
+export async function appendActivity(db: Database, e: ActivityEntry): Promise<void> {
+  await db.run(
     'INSERT INTO activity_log (requestId, actorId, action, fromStatus, toStatus, note, at) VALUES (?, ?, ?, ?, ?, ?, ?)',
-  ).run(e.requestId, e.actorId, e.action, e.fromStatus, e.toStatus, e.note, e.at);
+    e.requestId, e.actorId, e.action, e.fromStatus, e.toStatus, e.note, e.at,
+  );
 }

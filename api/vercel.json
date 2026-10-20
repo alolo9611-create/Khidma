@@ -1,0 +1,8 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "express",
+  "installCommand": "npm ci && npm ci --prefix ../web",
+  "buildCommand": "npm run build --prefix ../web && rm -rf public && cp -R ../web/dist public",
+  "proxy": { "entrypoint": "proxy.ts" },
+  "rewrites": [{ "source": "/((?!api/|healthz$).*)", "destination": "/index.html" }]
+}

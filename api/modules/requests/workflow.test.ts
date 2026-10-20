@@ -179,7 +179,7 @@ describe('queue, pick & assign (F-11, F-12, F-17, BR-05, BR-06)', () => {
   });
   it('BR-06: a reviewer cannot pick above the load limit; a supervisor can still assign', async () => {
     const t = await testApp();
-    t.db.prepare('UPDATE departments SET maxActivePerReviewer = 1 WHERE id = 1').run();
+    await t.db.run('UPDATE departments SET maxActivePerReviewer = 1 WHERE id = 1');
     await inReview(t, 'faisal');
     const second = await submitted(t, 'huda');
     const res = await t.as('noura').post(`/api/v1/requests/${second}/pick`);
@@ -326,14 +326,14 @@ describe('activity log (F-20, BR-15)', () => {
     const t = await testApp();
     const id = await inReview(t);
     await t.as('noura').post(`/api/v1/requests/${id}/reject`, { reasonCode: 'OTHER', justification: 'Not eligible under the current policy rules.' }).expect(200);
-    const rows = t.db.prepare('SELECT action, fromStatus, toStatus, actorId FROM activity_log WHERE requestId = ? ORDER BY id').all(id);
+    const rows = await t.db.all('SELECT action, fromStatus, toStatus, actorId FROM activity_log WHERE requestId = ? ORDER BY id', id);
     expect(rows).toEqual([
       { action: 'SUBMIT', fromStatus: 'DRAFT', toStatus: 'SUBMITTED', actorId: 1 },
       { action: 'PICK', fromStatus: 'SUBMITTED', toStatus: 'IN_REVIEW', actorId: 3 },
       { action: 'REJECT', fromStatus: 'IN_REVIEW', toStatus: 'REJECTED', actorId: 3 },
     ]);
-    expect(() => t.db.prepare("UPDATE activity_log SET note = 'x'").run()).toThrow(/append-only/);
-    expect(() => t.db.prepare('DELETE FROM activity_log').run()).toThrow(/append-only/);
+    await expect(t.db.run("UPDATE activity_log SET note = 'x'")).rejects.toThrow(/append-only/);
+    await expect(t.db.run('DELETE FROM activity_log')).rejects.toThrow(/append-only/);
   });
 });
 

@@ -1,13 +1,13 @@
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import express from 'express';
-import { createApp } from './app.js';
+import { createApp } from './create-app.js';
 import { systemClock } from './core/clock.js';
 import { loadConfig } from './core/config.js';
 import { openDatabase } from './core/db/connection.js';
 
-const { port, jwtSecret, databasePath, timezone, trustProxy, staticDir, host, previewGate } = loadConfig(process.env);
-const db = openDatabase(databasePath);
+const { port, jwtSecret, databasePath, databaseAuthToken, timezone, trustProxy, staticDir, host, previewGate } = loadConfig(process.env);
+const db = openDatabase(databasePath, databaseAuthToken ?? undefined);
 const app = createApp({ db, clock: systemClock, jwtSecret, timezone, previewGate });
 
 if (trustProxy) app.set('trust proxy', /^\d+$/.test(trustProxy) ? Number(trustProxy) : trustProxy);
