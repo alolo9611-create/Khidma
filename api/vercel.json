@@ -3,7 +3,6 @@
   "framework": "express",
   "regions": ["pdx1"],
   "installCommand": "npm ci --include=dev && npm ci --include=dev --prefix ../web",
-  "buildCommand": "npm run build --prefix ../web && rm -rf public && cp -R ../web/dist public",
-  "proxy": { "entrypoint": "proxy.ts" },
-  "rewrites": [{ "source": "/((?!api/|healthz$).*)", "destination": "/index.html" }]
+  "buildCommand": "npm run build --prefix ../web && rm -rf views && cp -R ../web/dist views",
+  "proxy": { "entrypoint": "proxy.ts" }
 }
