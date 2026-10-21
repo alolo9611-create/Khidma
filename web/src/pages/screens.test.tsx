@@ -32,6 +32,19 @@ describe('public screens', () => {
     expect(screen.getByRole('link', { name: 'Start request' }).getAttribute('href')).toBe('/login');
   });
 
+  it('S-03 landing hero shows the four-step journey and the live service count', async () => {
+    stubFetch();
+    renderAt('/catalog');
+    const hero = within(await screen.findByRole('region', { name: /From request to certificate/ }));
+    expect(hero.getByRole('heading', { level: 1 })).toBeTruthy();
+    expect(hero.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual([
+      'Submit your request online', 'Get a reference and due date', 'Answer questions in the app', 'Receive the decision and certificate',
+    ]);
+    expect(hero.getByRole('link', { name: 'Verify a certificate' }).getAttribute('href')).toBe('/verify');
+    expect(hero.getByRole('link', { name: 'Start a new request' }).getAttribute('href')).toBe('#services');
+    expect(await hero.findByText('1 service available')).toBeTruthy(); // one stub service, singular
+  });
+
   it('S-02 verify shows valid, expired and not found without personal data (BR-17)', async () => {
     stubFetch({
       '/api/v1/verify/SHOP-LIC-2026-00001': () => json(200, { certificateNo: 'SHOP-LIC-2026-00001', service: { name: 'Shop licence renewal' }, status: 'VALID', issuedOn: '2026-10-18', validUntil: '2027-10-17' }),
