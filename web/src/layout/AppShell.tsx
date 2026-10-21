@@ -35,7 +35,7 @@ function Bell() {
     navigate(n.link);
   }
   return (
-    <div ref={ref} style={{ position: 'relative' }}>
+    <div ref={ref}>
       <button className={`k-icon-btn${open ? ' is-open' : ''}`} type="button" aria-label={`Notifications${data.unread ? `, ${data.unread} unread` : ''}`} aria-expanded={open} onClick={() => setOpen(!open)}>
         <Icon name="bell" />{data.unread > 0 && <span className="k-count">{data.unread}</span>}
       </button>

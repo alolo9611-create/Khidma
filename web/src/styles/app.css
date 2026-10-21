@@ -18,7 +18,13 @@ button.k-btn-sm { font-size: 14px; }
 .k-menu button, .k-menu a { all: unset; padding: 10px 12px; border-radius: var(--r-md); cursor: pointer; font-size: 14px; color: var(--k-text); }
 .k-menu button:hover, .k-menu a:hover { background: var(--k-subtle); }
 .k-pop .k-notif { cursor: pointer; }
-.k-pop-list { max-height: 420px; overflow-y: auto; }
+/* Notifications panel: anchored to the whole actions area (not the 40 px bell, which `max-width:100%` would
+   shrink it to), as wide as the design allows within the screen, and never taller than the visible screen;
+   the header stays put and the list scrolls inside the panel. */
+.k-top-actions .k-pop { width: min(380px, calc(100vw - 32px)); max-width: none; display: flex; flex-direction: column;
+  max-height: min(560px, calc(100vh - 96px)); max-height: min(560px, calc(100dvh - 96px)); }
+.k-top-actions .k-pop > .k-pop-head { flex: none; }
+.k-pop-list { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
 .k-mobile-only { display: none !important; }
 
 /* Dialog overlay */
@@ -44,6 +50,7 @@ button.k-btn-sm { font-size: 14px; }
   .k-sticky-bar { position: sticky; bottom: 0; z-index: 20; background: var(--k-surface); border-top: 1px solid var(--k-border); padding: 12px 16px; display: flex; gap: 8px; margin: 0 -16px -48px; }
   .k-sticky-bar > * { flex: 1; }
   .k-toasts { left: 16px; right: 16px; bottom: 16px; }
+  .k-top-actions .k-pop { max-height: calc(100vh - 140px); max-height: calc(100dvh - 140px); }
 }
 
 /* ---------- Catalog landing hero (S-03) ---------- */
